@@ -5,11 +5,18 @@
  */
 
 #include <iostream>
+#include <string>
 
 #include "skip_list.h"
 
-void main() {
-  ssl::SkipList skip_list;
+int32_t main() {
+  ssl::SkipList<int32_t, std::string> skip_list;
+
+  skip_list.Update(5, "5");
+  skip_list.Update(10, "10");
+  skip_list.Update(12, "12");
+
+  return 0;
 }
 
 

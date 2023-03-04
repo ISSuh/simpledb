@@ -36,7 +36,7 @@ class List {
   List();
   ~List();
 
-  void InsertNode(Node<Key, Value>* pos, Key key, Value value);
+  void InsertNode(Node<Key, Value>* last_pos, Node<Key, Value>* new_node);
   void DeleteNode(Key key);
   bool Search(Key key, Node<Key, Value>* node);
 
@@ -63,18 +63,15 @@ List<Key, Value>::~List() {
 }
 
 template<typename Key, typename Value>
-void List<Key, Value>::InsertNode(Node<Key, Value>* pos, Key key, Value value) {
-  Node<Key, Value>* node = new Node<Key, Value>();
-  node->item.key = key;
-  node->item.value = key;
-
-  Node<Key, Value> current = pos;
+void List<Key, Value>::InsertNode(
+  Node<Key, Value>* last_pos, Node<Key, Value>* new_node) {
+  Node<Key, Value>* current = last_pos;
   if (nullptr != current->prev) {
-    current->prev->next = node;
+    current->prev->next = new_node;
   }
 
   if (nullptr != current->next) {
-    current->next->prev = node;
+    current->next->prev = new_node;
   }
 
   ++size_;
@@ -134,7 +131,7 @@ SkipList<Key, Value>::~SkipList() {
 
 template<typename Key, typename Value>
 void SkipList<Key, Value>::Update(const Key key, Value value) {
-  std::vector<Node<Key, Value>*> history(list_.size(), nullptr);
+  std::vector<Node<Key, Value>*> history(max_level_, nullptr);
   Node<Key, Value>* node = FindIntenal(key, &history);
   if (nullptr != node) {
     node->item.value = value;
@@ -146,7 +143,9 @@ void SkipList<Key, Value>::Update(const Key key, Value value) {
   new_node->item.value = value;
 
   size_t target_level = GenerateRandomLevel<size_t>(0, max_level_);
-  
+  for (size_t index = 0 ; index < target_level ; ++index) {
+    list_[index].InsertNode(history[index], new_node);
+  }
 }
 
 template<typename Key, typename Value>
@@ -179,6 +178,8 @@ Node<Key, Value>* SkipList<Key, Value>::FindIntenal(
       size_t index = std::distance(list_.begin(), level_iter.base()) - 1;
       (*history)[index] = last_node;
     }
+
+    ++level_iter;
   }
   return nullptr;
 }

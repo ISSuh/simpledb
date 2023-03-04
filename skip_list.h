@@ -4,17 +4,18 @@
  *
  */
 
+#include <iostream>
+#include <string>
 #include <vector>
 #include <random>
 
 namespace ssl {
 
-template<typename T>
-T GenerateRandomLevel(T range_from, T range_to) {
-    std::random_device rand_dev;
-    std::mt19937 generator(rand_dev());
-    std::uniform_int_distribution<T> distribution(range_from, range_to);
-    return distribution(generator);
+size_t GenerateRandomLevel(size_t range_from, size_t range_to) {
+  std::random_device rand_dev;
+  std::mt19937 generator(rand_dev());
+  std::uniform_int_distribution<size_t> distribution(range_from, range_to);
+  return distribution(generator);
 }
 
 template<typename Key, typename Value>
@@ -25,6 +26,7 @@ struct Item {
 
 template<typename Key, typename Value>
 struct Node {
+  std::string debug;
   Node* prev = nullptr;
   Node* next = nullptr;
   Item<Key, Value> item;
@@ -36,9 +38,19 @@ class List {
   List();
   ~List();
 
-  void InsertNode(Node<Key, Value>* last_pos, Node<Key, Value>* new_node);
+  Node<Key, Value>* Head() const {
+    return head_;
+  }
+
+  Node<Key, Value>* Tail() const {
+    return tail_;
+  }
+
+  void InsertNode(Node<Key, Value>* last_pos, Key key, Value value);
   void DeleteNode(Key key);
-  bool Search(Key key, Node<Key, Value>* node);
+  bool Search(Key key, Node<Key, Value>** node);
+
+  void Print(size_t level) const;
 
  private:
   inline bool MatchKey(Node<Key, Value>* current, Key key) const;
@@ -56,6 +68,9 @@ List<Key, Value>::List()
 
   head_->next = tail_;
   tail_->prev = head_;
+
+  head_->debug = "head";
+  tail_->debug = "tail";
 }
 
 template<typename Key, typename Value>
@@ -64,15 +79,21 @@ List<Key, Value>::~List() {
 
 template<typename Key, typename Value>
 void List<Key, Value>::InsertNode(
-  Node<Key, Value>* last_pos, Node<Key, Value>* new_node) {
-  Node<Key, Value>* current = last_pos;
-  if (nullptr != current->prev) {
-    current->prev->next = new_node;
-  }
+  Node<Key, Value>* last_pos, Key key, Value value) {
+  // create new node
+  Node<Key, Value>* new_node = new Node<Key, Value>();
+  new_node->item.key = key;
+  new_node->item.value = value;
 
+  Node<Key, Value>* current = (last_pos == nullptr) ? head_ : last_pos;
   if (nullptr != current->next) {
     current->next->prev = new_node;
   }
+
+  new_node->prev = current;
+  new_node->next = current->next;
+
+  current->next = new_node;
 
   ++size_;
 }
@@ -82,10 +103,10 @@ void List<Key, Value>::DeleteNode(Key key) {
 }
 
 template<typename Key, typename Value>
-bool List<Key, Value>::Search(Key key, Node<Key, Value>* node) {
+bool List<Key, Value>::Search(Key key, Node<Key, Value>** last_node) {
   Node<Key, Value>* current = head_;
   while (current != tail_) {
-    node = current;
+    *last_node = current;
     if (MatchKey(current, key)) {
       return true;
     }
@@ -100,6 +121,18 @@ bool List<Key, Value>::MatchKey(Node<Key, Value>* current, Key key) const {
 }
 
 template<typename Key, typename Value>
+void List<Key, Value>::Print(size_t level) const {
+  std::cout << "[" << level << "] : ";
+  Node<Key, Value>* current = head_;
+  while (current != tail_) {
+    if (current != head_)
+      std::cout << current->item.key << "\t";
+    current = current->next;
+  }
+  std::cout << std::endl;
+}
+
+template<typename Key, typename Value>
 class SkipList {
  public:
   SkipList();
@@ -109,12 +142,14 @@ class SkipList {
   bool Remove(const Key key);
   bool Find(const Key key, Value* value);
 
+  void Print() const;
+
  private:
   Node<Key, Value>* FindIntenal(
     const Key key,
     std::vector<Node<Key, Value>*>* history);
 
-  size_t max_level_ = 10;
+  size_t max_level_ = 5;
 
   using Levels = std::vector<List<Key, Value>>;
   Levels list_;
@@ -131,20 +166,32 @@ SkipList<Key, Value>::~SkipList() {
 
 template<typename Key, typename Value>
 void SkipList<Key, Value>::Update(const Key key, Value value) {
-  std::vector<Node<Key, Value>*> history(max_level_, nullptr);
+  size_t list_size = list_.size();
+  std::vector<Node<Key, Value>*> history(list_size, nullptr);
   Node<Key, Value>* node = FindIntenal(key, &history);
   if (nullptr != node) {
     node->item.value = value;
     return;
   }
 
-  Node<Key, Value>* new_node = new Node<Key, Value>();
-  new_node->item.key = key;
-  new_node->item.value = value;
+  // generate target level
+  size_t target_level = GenerateRandomLevel(1, max_level_);
 
-  size_t target_level = GenerateRandomLevel<size_t>(0, max_level_);
-  for (size_t index = 0 ; index < target_level ; ++index) {
-    list_[index].InsertNode(history[index], new_node);
+  // if less list size than target_level,
+  // create new list as musch as target level
+  if (target_level > list_size) {
+    for (int32_t i = target_level - list_size ; i > 0 ; --i) {
+      list_.emplace_back();
+    }
+  }
+
+  std::cout << __func__ << " - target : " << target_level << std::endl;
+
+  // insert new node for each level
+  size_t history_size = history.size();
+  for (size_t i = 0 ; i < target_level; ++i) {
+    Node<Key, Value>* last_node = (i < history_size) ? history[i] : nullptr;
+    list_[i].InsertNode(last_node, key, value);
   }
 }
 
@@ -169,7 +216,7 @@ Node<Key, Value>* SkipList<Key, Value>::FindIntenal(
   auto level_iter = list_.rbegin();
   while (level_iter != list_.rend()) {
     Node<Key, Value>* last_node = nullptr;
-    bool res = level_iter->Search(key, last_node);
+    bool res = level_iter->Search(key, &last_node);
     if (res) {
       return last_node;
     }
@@ -182,6 +229,14 @@ Node<Key, Value>* SkipList<Key, Value>::FindIntenal(
     ++level_iter;
   }
   return nullptr;
+}
+
+template<typename Key, typename Value>
+void SkipList<Key, Value>::Print() const {
+  std::cout << "---------------------------------\n";
+  for (int32_t i = list_.size() - 1 ; i >= 0 ; --i) {
+    list_[i].Print(i);
+  }
 }
 
 }  // namespace ssl

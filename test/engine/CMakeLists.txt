@@ -16,8 +16,7 @@ add_executable(${PROJECT_NAME}
 
 target_include_directories(${PROJECT_NAME}
  PRIVATE
-  ${PROJECT_LINK_INCLUDE_DIR}
-  ${GOOGLETEST_INCLUDE_DIR}
+  ${PROJECT_SDB_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -27,8 +26,6 @@ target_link_libraries(${PROJECT_NAME}
   gmock
   gmock_main
   pthread
-
-  ${LINK_LIBRARY_NAME}
 )
 
 add_test(

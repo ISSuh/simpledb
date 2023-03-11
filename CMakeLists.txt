@@ -53,10 +53,25 @@ set(TEST_DIR ${PROJECT_DIR}/test)
 
 include(${PROJECT_DIR}/cmake/googletest.cmake)
 
-fetch_googletest(
+fetch_thridparty(
     ${PROJECT_DIR}/test
     ${PROJECT_DIR}/cmake
     ${BUILD_DIR}/googletest
 )
 
 add_subdirectory(${TEST_DIR})
+
+#-------------------------------------------------------------------------------
+# build benchmark
+#-------------------------------------------------------------------------------
+set(BENCHMARK_DIR ${PROJECT_DIR}/benchmark)
+
+include(${PROJECT_DIR}/cmake/benchmark.cmake)
+
+fetch_thridparty(
+    ${PROJECT_DIR}/benchmark
+    ${PROJECT_DIR}/cmake
+    ${BUILD_DIR}/benchmark
+)
+
+add_subdirectory(${BENCHMARK_DIR})

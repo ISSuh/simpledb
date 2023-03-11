@@ -24,28 +24,10 @@ int32_t main() {
   skip_list.Update(12, "31");
   skip_list.Print();
 
-  bool res = skip_list.Remove(5);
-  if (res) {
-    std::cout << "remove success" << std::endl;
-  } else {
-    std::cout << "remove fail" << std::endl;
-  }
+  skip_list.Erase(5);
   skip_list.Print();
 
-  res = skip_list.Remove(88);
-  if (res) {
-    std::cout << "remove success" << std::endl;
-  } else {
-    std::cout << "remove fail" << std::endl;
-  }
-  skip_list.Print();
-
-  res = skip_list.Remove(10);
-  if (res) {
-    std::cout << "remove success" << std::endl;
-  } else {
-    std::cout << "remove fail" << std::endl;
-  }
+  skip_list.Erase(88);
   skip_list.Print();
 
   skip_list.Update(123, "123");

@@ -7,10 +7,10 @@
 #include <iostream>
 #include <string>
 
-#include "skip_list.h"
+#include "sdb/skip_list.h"
 
 int32_t main() {
-  ssl::SkipList<int32_t, std::string> skip_list(5);
+  sdb::SkipList<int32_t, std::string> skip_list(5);
 
   skip_list.Update(5, "5");
   skip_list.Print();

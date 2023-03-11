@@ -11,7 +11,7 @@
 
 #include "node.h"
 
-namespace ssl {
+namespace sdb {
 
 size_t GenerateRandomLevel(size_t range_from, size_t range_to) {
   std::random_device rand_dev;
@@ -257,4 +257,4 @@ void SkipList<Key, Value>::Print() const {
   std::cout << "---------------------------------\n";
 }
 
-}  // namespace ssl
+}  // namespace sdb

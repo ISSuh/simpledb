@@ -8,7 +8,7 @@
 #include <vector>
 #include <limits>
 
-namespace ssl {
+namespace sdb {
 
 template<typename KeyType, typename ValueType>
 struct Item {
@@ -132,4 +132,4 @@ Node<KeyType, ValueType>* Node<KeyType, ValueType>::NextNodeOnLevel(
   return (level < next_.size()) ? next_[level] : nullptr;
 }
 
-}  // namespace ssl
+}  // namespace sdb

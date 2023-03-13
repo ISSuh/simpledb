@@ -6,34 +6,37 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 
 #include "sdb/skip_list.h"
 
 int32_t main() {
-  sdb::SkipList<int32_t, std::string> skip_list(5);
+  sdb::SkipList<int32_t, int32_t> skip_list(8);
 
-  skip_list.Update(5, "5");
-  skip_list.Print();
+  auto start = std::chrono::high_resolution_clock::now();
+  for (auto i = 0 ; i < 10000 ; ++i) {
+    skip_list.Update(i, i);
+  }
+  auto stop = std::chrono::high_resolution_clock::now();
 
-  skip_list.Update(10, "10");
-  skip_list.Print();
+  auto duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-  skip_list.Update(12, "12");
-  skip_list.Print();
+  std::cout << "Update : "
+            << duration.count() << " millisecond" << std::endl;
 
-  skip_list.Update(12, "31");
-  skip_list.Print();
+  start = std::chrono::high_resolution_clock::now();
+  int32_t value;
+  for (auto i = 0 ; i < 10000 ; ++i) {
+    skip_list.Find(i, &value);
+  }
+  stop = std::chrono::high_resolution_clock::now();
 
-  skip_list.Erase(5);
-  skip_list.Print();
+  duration =
+    std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
 
-  skip_list.Erase(88);
-  skip_list.Print();
-
-  skip_list.Update(123, "123");
-  skip_list.Print();
+  std::cout << "Find : "
+            << duration.count() << " millisecond" << std::endl;
 
   return 0;
 }
-
-

@@ -1,4 +1,4 @@
-project(SimpleDB_engine_test)
+project(simpledb_engine_test)
 
 message("Build SimpleDB engine Test")
 

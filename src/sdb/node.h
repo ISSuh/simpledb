@@ -4,6 +4,9 @@
  *
  */
 
+#ifndef SDB_NODE_H_
+#define SDB_NODE_H_
+
 #include <string>
 #include <vector>
 #include <limits>
@@ -123,13 +126,15 @@ void Node<KeyType, ValueType>::Detach(size_t target_level) {
 template<typename KeyType, typename ValueType>
 Node<KeyType, ValueType>* Node<KeyType, ValueType>::PrevNodeOnLevel(
   size_t level) const {
-  return (level < prev_.size()) ? prev_[level] : nullptr;
+  return (level < level_) ? prev_[level] : nullptr;
 }
 
 template<typename KeyType, typename ValueType>
 Node<KeyType, ValueType>* Node<KeyType, ValueType>::NextNodeOnLevel(
   size_t level) const {
-  return (level < next_.size()) ? next_[level] : nullptr;
+  return (level < level_) ? next_[level] : nullptr;
 }
 
 }  // namespace sdb
+
+#endif  // SDB_NODE_H_

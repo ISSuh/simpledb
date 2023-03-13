@@ -4,6 +4,9 @@
  *
  */
 
+#ifndef SDB_NODE_LIST_H_
+#define SDB_NODE_LIST_H_
+
 #include <iostream>
 
 #include "node.h"
@@ -129,3 +132,5 @@ void NodeList<Key, Value>::Print(int32_t max_size) const {
 }
 
 }  // namespace sdb
+
+#endif  // SDB_NODE_LIST_H_

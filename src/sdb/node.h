@@ -22,7 +22,7 @@ struct Item {
 template<typename KeyType, typename ValueType>
 class Node {
  public:
-  explicit Node(size_t level);
+  explicit Node(size_t level, bool is_head_or_tail_for_debug = false);
 
   ~Node();
 
@@ -30,7 +30,7 @@ class Node {
   KeyType Key() const;
   ValueType Value() const;
 
-  bool Match(KeyType key) const;
+  inline bool Match(KeyType key) const;
 
   size_t Level() const;
 
@@ -44,7 +44,7 @@ class Node {
  private:
   void AppendInternal(Node<KeyType, ValueType>* history, size_t current_level);
 
-  std::string debug_;
+  bool is_head_or_tail_for_debug_;
   size_t level_;
   std::vector<Node<KeyType, ValueType>*> prev_;
   std::vector<Node<KeyType, ValueType>*> next_;
@@ -52,10 +52,11 @@ class Node {
 };
 
 template<typename KeyType, typename ValueType>
-Node<KeyType, ValueType>::Node(size_t level)
-  : level_(level),
-    prev_(level_, nullptr),
-    next_(level_, nullptr) {
+Node<KeyType, ValueType>::Node(size_t level, bool is_head_or_tail_for_debug)
+  : is_head_or_tail_for_debug_(is_head_or_tail_for_debug),
+    level_(level),
+    prev_(level_ + 1, nullptr),
+    next_(level_ + 1, nullptr) {
 }
 
 template<typename KeyType, typename ValueType>
@@ -90,7 +91,7 @@ size_t Node<KeyType, ValueType>::Level() const {
 
 template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::AppendTail(Node<KeyType, ValueType>* tail) {
-  for (size_t level = 0 ; level < level_ ; ++level) {
+  for (size_t level = 0 ; level <= level_ ; ++level) {
     next_[level] = tail;
     tail->prev_[level] = this;
   }
@@ -99,9 +100,9 @@ void Node<KeyType, ValueType>::AppendTail(Node<KeyType, ValueType>* tail) {
 template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::AppendOnLevel(
   Node<KeyType, ValueType>* new_node, size_t target_level) {
-  if (target_level > level_) {
-    return;
-  }
+  // if (target_level > level_) {
+  //   return;
+  // }
 
   if (nullptr != next_[target_level]) {
     next_[target_level]->prev_[target_level] = new_node;
@@ -115,9 +116,9 @@ void Node<KeyType, ValueType>::AppendOnLevel(
 
 template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::Detach(size_t target_level) {
-  if (target_level > level_) {
-    return;
-  }
+  // if (target_level > level_) {
+  //   return;
+  // }
 
   next_[target_level]->prev_[target_level] = prev_[target_level];
   prev_[target_level]->next_[target_level] = next_[target_level];
@@ -126,13 +127,13 @@ void Node<KeyType, ValueType>::Detach(size_t target_level) {
 template<typename KeyType, typename ValueType>
 Node<KeyType, ValueType>* Node<KeyType, ValueType>::PrevNodeOnLevel(
   size_t level) const {
-  return (level < level_) ? prev_[level] : nullptr;
+  return prev_[level];
 }
 
 template<typename KeyType, typename ValueType>
 Node<KeyType, ValueType>* Node<KeyType, ValueType>::NextNodeOnLevel(
   size_t level) const {
-  return (level < level_) ? next_[level] : nullptr;
+  return next_[level];
 }
 
 }  // namespace sdb

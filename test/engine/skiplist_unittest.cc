@@ -45,12 +45,12 @@ TEST(Engine, update) {
 }
 
 TEST(Engine, update_large) {
-  int32_t num = 10;
+  int32_t num = 10000;
   bool res = false;
   std::string value("");
 
   int32_t size = static_cast<double>(std::log2(static_cast<double>(num)));
-  sdb::SkipList<int32_t, int32_t> list(16);
+  sdb::SkipList<int32_t, int32_t> list(8);
 
   for (int32_t i = 0 ; i < num ; ++i) {
     list.Update(i, i);
@@ -67,7 +67,7 @@ TEST(Engine, erase) {
   int32_t size = static_cast<double>(std::log2(static_cast<double>(num)));
   sdb::SkipList<int32_t, std::string> list(size);
 
-  for (int32_t i = 0 ; i < num ; ++i) {
+  for (int32_t i = 0 ; i <= num ; ++i) {
     int32_t key = i;
     std::string value = std::to_string(key);
     list.Update(key, value);

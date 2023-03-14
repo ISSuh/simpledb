@@ -28,7 +28,7 @@ class NodeList {
 
   void InsertNode(Node<Key, Value>* last_node, Node<Key, Value>* new_node);
   void DeleteNode(Node<Key, Value>* node);
-  bool Search(Key key, Node<Key, Value>** last_node);
+  bool Search(Key key, Node<Key, Value>* last_node, Node<Key, Value>** history);
 
   void Print(int32_t max_size) const;
 
@@ -88,16 +88,18 @@ void NodeList<Key, Value>::DeleteNode(Node<Key, Value>* node) {
 }
 
 template<typename Key, typename Value>
-bool NodeList<Key, Value>::Search(Key key, Node<Key, Value>** last_node) {
-  Node<Key, Value>* current = head_;
+bool NodeList<Key, Value>::Search(
+  Key key, Node<Key, Value>* last_node, Node<Key, Value>** history) {
+  Node<Key, Value>* current = last_node;
   while (current != tail_) {
-    *last_node = current;
+    *history = current;
     if (MatchKey(current, key)) {
       return true;
     }
 
-    current = current->NextNodeOnLevel(current_level_);
-    if (nullptr == current) {
+    if (current_level_ < current->Level()) {
+      current = current->NextNodeOnLevel(current_level_);
+    } else {
       current = tail_;
     }
   }

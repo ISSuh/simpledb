@@ -31,7 +31,6 @@ class Node {
   ValueType Value() const;
 
   inline bool Match(KeyType key) const;
-
   size_t Level() const;
 
   void AppendTail(Node<KeyType, ValueType>* tail);
@@ -119,9 +118,13 @@ void Node<KeyType, ValueType>::Detach(size_t target_level) {
   // if (target_level > level_) {
   //   return;
   // }
+  if (nullptr != next_[target_level]) {
+    next_[target_level]->prev_[target_level] = prev_[target_level];
+  }
 
-  next_[target_level]->prev_[target_level] = prev_[target_level];
-  prev_[target_level]->next_[target_level] = next_[target_level];
+  if (nullptr != prev_[target_level]) {
+    prev_[target_level]->next_[target_level] = next_[target_level];
+  }
 }
 
 template<typename KeyType, typename ValueType>

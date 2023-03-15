@@ -93,7 +93,7 @@ bool NodeList<Key, Value>::Search(
   Node<Key, Value>* current = last_node;
   while (current != tail_) {
     *history = current;
-    if (MatchKey(current, key)) {
+    if (current->Key() < key) {
       return true;
     }
 

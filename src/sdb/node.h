@@ -15,6 +15,9 @@ namespace sdb {
 
 template<typename KeyType, typename ValueType>
 struct Item {
+  Item() : key(KeyType()), value(ValueType()) {
+  }
+
   KeyType key;
   ValueType value;
 };
@@ -39,6 +42,10 @@ class Node {
 
   Node<KeyType, ValueType>* PrevNodeOnLevel(size_t level) const;
   Node<KeyType, ValueType>* NextNodeOnLevel(size_t level) const;
+
+  bool IsEndNode() const {
+    return is_head_or_tail_for_debug_;
+  }
 
  private:
   void AppendInternal(Node<KeyType, ValueType>* history, size_t current_level);

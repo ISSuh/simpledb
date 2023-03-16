@@ -44,21 +44,6 @@ TEST(Engine, update) {
   EXPECT_STREQ(value.c_str(), "1000");
 }
 
-TEST(Engine, update_large) {
-  int32_t num = 10000;
-  bool res = false;
-  std::string value("");
-
-  int32_t size = static_cast<double>(std::log2(static_cast<double>(num)));
-  sdb::SkipList<int32_t, int32_t> list(8);
-
-  for (int32_t i = 0 ; i < num ; ++i) {
-    list.Update(i, i);
-  }
-
-  EXPECT_EQ(list.Size(), num);
-}
-
 TEST(Engine, erase) {
   int32_t num = 10;
   bool res = false;

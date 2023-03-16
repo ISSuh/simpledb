@@ -9,23 +9,11 @@
 
 #include <iostream>
 #include <vector>
-#include <random>
 
 #include "node_list.h"
 #include "rand.h"
 
 namespace sdb {
-
-int coinFlip(){
- return (rand() % 2 == 1);
-}
-
-size_t GenerateRandomLevel(size_t range_from, size_t range_to) {
-  std::random_device rand_dev;
-  std::mt19937 generator(rand_dev());
-  std::uniform_int_distribution<size_t> distribution(range_from, range_to);
-  return distribution(generator);
-}
 
 template<typename Key, typename Value>
 class SkipList {
@@ -60,8 +48,9 @@ class SkipList {
 template<typename Key, typename Value>
 SkipList<Key, Value>::SkipList(size_t max_level)
   : max_level_(max_level),
-    head_(max_level_ + 1, true),
-    tail_(max_level_ + 1, true) {
+    head_(max_level_, true),
+    tail_(max_level_, true) {
+
   // create list
   for (size_t i = 0 ; i <= max_level_ ; ++i) {
     lists_.emplace_back(i, &head_, &tail_);
@@ -82,29 +71,17 @@ void SkipList<Key, Value>::Update(const Key key, Value value) {
     return;
   }
 
-  // generate target level
-  size_t target_level = GenerateRandomLevel(1, max_level_);
-  // size_t target_level = redisLrand48() % max_level_;
-
-  // size_t target_level = 0;
-  // while (coinFlip() && (target_level < max_level_)) {
-  //   ++target_level;
-  // }
-
-  // if less list size than target_level,
-  // create new list as musch as target level
-  // for (size_t i = list_size ; i < target_level ; ++i) {
-  //   lists_.emplace_back(i, &head_, &tail_);
-  // }
+  size_t target_level = 1;
+  while (CoinFlip() && (target_level < max_level_)) {
+    ++target_level;
+  }
 
   Node<Key, Value>* new_node = new Node<Key, Value>(target_level);
   new_node->Set(key, value);
 
   // insert new node for each level
   for (size_t i = 1 ; i <= target_level; ++i) {
-    Node<Key, Value>* last_node =
-      (history[i] != nullptr) ? history[i] : lists_[i].Head();
-    lists_[i].InsertNode(last_node, new_node);
+    history[i]->AppendOnLevel(new_node, i);
   }
 }
 
@@ -116,8 +93,8 @@ void SkipList<Key, Value>::Erase(const Key key) {
     return;
   }
 
-  for (size_t i = 0 ; i < node->Level() ; ++i) {
-    lists_[i].DeleteNode(node);
+  for (size_t i = 1 ; i <= node->Level() ; ++i) {
+    node->Detach(i);
   }
 
   delete node;
@@ -148,25 +125,16 @@ size_t SkipList<Key, Value>::Size() const {
 template<typename Key, typename Value>
 Node<Key, Value>* SkipList<Key, Value>::FindIntenal(
   const Key key, std::vector<Node<Key, Value>*>* history) {
-  size_t index = max_level_;
-  auto level_iter = lists_.rbegin();
-  Node<Key, Value>* last_node = level_iter->Head();
-  while (level_iter != lists_.rend() - 1) {
-    Node<Key, Value>* node_history_on_level = nullptr;
-    bool res = level_iter->Search(key, last_node, &node_history_on_level);
-    if (res) {
-      return node_history_on_level;
+  Node<Key, Value>* current = &head_;
+  for (auto i = max_level_ ; i >= 1 ; --i) {
+    while (&tail_ != current->NextNodeOnLevel(i) &&
+           current->NextNodeOnLevel(i)->Key() < key) {
+      current = current->NextNodeOnLevel(i);
     }
-
-    if (nullptr != history) {
-      (*history)[index] = node_history_on_level;
-      last_node = node_history_on_level;
-    }
-
-    ++level_iter;
-    --index;
+    history->at(i) = current;
   }
-  return nullptr;
+  current = current->NextNodeOnLevel(1);
+  return (current->IsEndNode() || !current->Match(key)) ? nullptr : current;
 }
 
 template<typename Key, typename Value>

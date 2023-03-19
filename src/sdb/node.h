@@ -25,44 +25,41 @@ struct Item {
 template<typename KeyType, typename ValueType>
 class Node {
  public:
-  explicit Node(size_t level, bool is_head_or_tail_for_debug = false);
+  explicit Node(size_t level, bool is_head_or_tail_ = false);
 
   ~Node();
 
-  void Set(KeyType key, ValueType value);
-  KeyType Key() const;
-  ValueType Value() const;
+  inline void Set(KeyType key, ValueType value);
+  inline KeyType Key() const;
+  inline ValueType Value() const;
 
   inline bool Match(KeyType key) const;
-  size_t Level() const;
+  inline size_t Level() const;
+  inline bool IsEndNode() const;
 
   void AppendTail(Node<KeyType, ValueType>* tail);
   void AppendOnLevel(Node<KeyType, ValueType>* new_node, size_t target_level);
   void Detach(size_t target_level);
 
-  Node<KeyType, ValueType>* PrevNodeOnLevel(size_t level) const;
-  Node<KeyType, ValueType>* NextNodeOnLevel(size_t level) const;
-
-  bool IsEndNode() const {
-    return is_head_or_tail_for_debug_;
-  }
+  inline Node<KeyType, ValueType>* PrevNodeOnLevel(size_t level) const;
+  inline Node<KeyType, ValueType>* NextNodeOnLevel(size_t level) const;
 
  private:
   void AppendInternal(Node<KeyType, ValueType>* history, size_t current_level);
 
-  bool is_head_or_tail_for_debug_;
   size_t level_;
+  bool is_head_or_tail_;
   std::vector<Node<KeyType, ValueType>*> prev_;
   std::vector<Node<KeyType, ValueType>*> next_;
   Item<KeyType, ValueType> item_;
 };
 
 template<typename KeyType, typename ValueType>
-Node<KeyType, ValueType>::Node(size_t level, bool is_head_or_tail_for_debug)
-  : is_head_or_tail_for_debug_(is_head_or_tail_for_debug),
-    level_(level),
-    prev_(level_ + 1, nullptr),
-    next_(level_ + 1, nullptr) {
+Node<KeyType, ValueType>::Node(size_t level, bool is_head_or_tail)
+  : level_(level),
+    is_head_or_tail_(is_head_or_tail),
+    prev_(level_, nullptr),
+    next_(level_, nullptr) {
 }
 
 template<typename KeyType, typename ValueType>
@@ -96,6 +93,11 @@ size_t Node<KeyType, ValueType>::Level() const {
 }
 
 template<typename KeyType, typename ValueType>
+bool Node<KeyType, ValueType>::IsEndNode() const {
+  return is_head_or_tail_;
+}
+
+template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::AppendTail(Node<KeyType, ValueType>* tail) {
   for (size_t level = 0 ; level <= level_ ; ++level) {
     next_[level] = tail;
@@ -106,10 +108,6 @@ void Node<KeyType, ValueType>::AppendTail(Node<KeyType, ValueType>* tail) {
 template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::AppendOnLevel(
   Node<KeyType, ValueType>* new_node, size_t target_level) {
-  // if (target_level > level_) {
-  //   return;
-  // }
-
   if (nullptr != next_[target_level]) {
     next_[target_level]->prev_[target_level] = new_node;
   }
@@ -122,9 +120,6 @@ void Node<KeyType, ValueType>::AppendOnLevel(
 
 template<typename KeyType, typename ValueType>
 void Node<KeyType, ValueType>::Detach(size_t target_level) {
-  // if (target_level > level_) {
-  //   return;
-  // }
   if (nullptr != next_[target_level]) {
     next_[target_level]->prev_[target_level] = prev_[target_level];
   }

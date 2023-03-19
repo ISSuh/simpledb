@@ -35,11 +35,13 @@ TEST(Engine, update) {
 
   list.Update(10, "10");
   res = list.Find(10, &value);
+  list.Print();
   EXPECT_TRUE(res);
   EXPECT_STREQ(value.c_str(), "10");
 
   list.Update(10, "1000");
   res = list.Find(10, &value);
+  list.Print();
   EXPECT_TRUE(res);
   EXPECT_STREQ(value.c_str(), "1000");
 }
@@ -63,9 +65,13 @@ TEST(Engine, erase) {
   EXPECT_TRUE(res);
   EXPECT_STREQ(value.c_str(), std::to_string(random_key).c_str());
 
+  list.Print();
+
   value.clear();
 
   list.Erase(random_key);
   res = list.Find(random_key, &value);
   EXPECT_FALSE(res);
+
+  list.Print();
 }

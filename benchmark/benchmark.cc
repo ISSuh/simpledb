@@ -7,14 +7,6 @@
 #include <benchmark/benchmark.h>
 
 #include <sdb/skip_list.h>
-#include <sdb/rand.h>
-
-size_t GenerateRandom(size_t range_from, size_t range_to) {
-  std::random_device rand_dev;
-  std::mt19937 generator(rand_dev());
-  std::uniform_int_distribution<size_t> distribution(range_from, range_to);
-  return distribution(generator);
-}
 
 static void Create(benchmark::State& state) {
   for (auto _ : state) {

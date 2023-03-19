@@ -11,7 +11,11 @@
 #include "sdb/skip_list.h"
 
 int32_t main() {
-  int32_t num = 100000;
+  // sdb::Random rand(0xdeadbeef);
+  // int32_t num = rand.Uniform(10000);
+  int32_t num = 10000;
+  std::cout <<"item numx : " << num << std::endl;
+
   sdb::SkipList<int32_t, int32_t> skip_list(8);
 
   auto start = std::chrono::high_resolution_clock::now();

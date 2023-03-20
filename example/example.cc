@@ -13,7 +13,7 @@
 int32_t main() {
   // sdb::Random rand(0xdeadbeef);
   // int32_t num = rand.Uniform(10000);
-  int32_t num = 10000;
+  int32_t num = 100000;
   std::cout <<"item numx : " << num << std::endl;
 
   sdb::SkipList<int32_t, int32_t> skip_list(8);
@@ -48,7 +48,7 @@ int32_t main() {
 
   start = std::chrono::high_resolution_clock::now();
   for (auto i = 0 ; i < num ; ++i) {
-    skip_list.Erase(i);
+    // skip_list.Erase(i);
   }
   stop = std::chrono::high_resolution_clock::now();
   // skip_list.Print();

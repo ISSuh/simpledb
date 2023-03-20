@@ -1,6 +1,6 @@
 project(simpledb_engine_test)
 
-message("Build SimpleDB engine Test")
+message("Build simpledb engine Test")
 
 #-------------------------------------------------------------------------------
 # Build unit test

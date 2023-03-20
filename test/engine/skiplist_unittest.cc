@@ -5,20 +5,13 @@
  */
 
 #include <string>
-#include <random>
 #include <cmath>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
 #include <sdb/skip_list.h>
-
-size_t GenerateRandom(size_t range_from, size_t range_to) {
-  std::random_device rand_dev;
-  std::mt19937 generator(rand_dev());
-  std::uniform_int_distribution<size_t> distribution(range_from, range_to);
-  return distribution(generator);
-}
+#include <sdb/rand.h>
 
 TEST(Engine, create) {
   sdb::SkipList<int32_t, std::string>  list(100);
@@ -27,11 +20,12 @@ TEST(Engine, create) {
 
 TEST(Engine, update) {
   bool res = false;
-  std::string value("");
-  sdb::SkipList<int32_t, std::string>  list;
+  sdb::SkipList<int32_t, std::string> list;
 
+  std::string value("");
   res = list.Find(100, &value);
   EXPECT_FALSE(res);
+  EXPECT_STREQ(value.c_str(), "");
 
   list.Update(10, "10");
   res = list.Find(10, &value);
@@ -60,7 +54,8 @@ TEST(Engine, erase) {
     list.Update(key, value);
   }
 
-  int32_t random_key = GenerateRandom(0, num);
+  sdb::Random rand(0xdeadbeef);
+  int32_t random_key = rand.Uniform(num);
   res = list.Find(random_key, &value);
   EXPECT_TRUE(res);
   EXPECT_STREQ(value.c_str(), std::to_string(random_key).c_str());

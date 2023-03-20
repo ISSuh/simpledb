@@ -15,9 +15,6 @@ namespace sdb {
 
 template<typename KeyType, typename ValueType>
 struct Item {
-  Item() : key(KeyType()), value(ValueType()) {
-  }
-
   KeyType key;
   ValueType value;
 };
@@ -25,7 +22,8 @@ struct Item {
 template<typename KeyType, typename ValueType>
 class Node {
  public:
-  explicit Node(size_t level, bool is_head_or_tail_ = false);
+  explicit Node(size_t level);
+  Node(const KeyType key, const ValueType value, size_t level);
 
   ~Node();
 
@@ -37,7 +35,6 @@ class Node {
   inline size_t Level() const;
   inline bool IsEndNode() const;
 
-  void AppendTail(Node<KeyType, ValueType>* tail);
   void AppendOnLevel(Node<KeyType, ValueType>* new_node, size_t target_level);
   void Detach(size_t target_level);
 
@@ -55,15 +52,27 @@ class Node {
 };
 
 template<typename KeyType, typename ValueType>
-Node<KeyType, ValueType>::Node(size_t level, bool is_head_or_tail)
+Node<KeyType, ValueType>::Node(size_t level)
   : level_(level),
-    is_head_or_tail_(is_head_or_tail),
+    is_head_or_tail_(true),
     prev_(level_, nullptr),
     next_(level_, nullptr) {
 }
 
 template<typename KeyType, typename ValueType>
+Node<KeyType, ValueType>::Node(
+  const KeyType key, const ValueType value, size_t level)
+  : level_(level),
+    is_head_or_tail_(false),
+    prev_(level_, nullptr),
+    next_(level_, nullptr),
+    item_({key, value}) {
+}
+
+template<typename KeyType, typename ValueType>
 Node<KeyType, ValueType>::~Node() {
+  prev_.clear();
+  next_.clear();
 }
 
 template<typename KeyType, typename ValueType>
@@ -95,14 +104,6 @@ size_t Node<KeyType, ValueType>::Level() const {
 template<typename KeyType, typename ValueType>
 bool Node<KeyType, ValueType>::IsEndNode() const {
   return is_head_or_tail_;
-}
-
-template<typename KeyType, typename ValueType>
-void Node<KeyType, ValueType>::AppendTail(Node<KeyType, ValueType>* tail) {
-  for (size_t level = 0 ; level <= level_ ; ++level) {
-    next_[level] = tail;
-    tail->prev_[level] = this;
-  }
 }
 
 template<typename KeyType, typename ValueType>

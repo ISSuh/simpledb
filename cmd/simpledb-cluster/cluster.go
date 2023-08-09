@@ -25,27 +25,37 @@ SOFTWARE.
 package main
 
 import (
-	"log"
-	"os"
+	"net/http"
+
+	"github.com/ISSuh/simpledb/internal/node"
+	"github.com/gorilla/mux"
 )
 
-func main() {
-	log.Println("SimpleDB Cluster")
-	args := os.Args[1:]
-	if len(args) < 1 {
-		log.Println("need cluster option file path.")
-		return
-	}
+type Cluster struct {
+	option ClusterOption
+	router *mux.Router
 
-	optionFilePath := args[0]
-	option, err := LoadClusterOptionFile(optionFilePath)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
+	nodeManager *node.NodeManager
+}
 
-	cluster := NewCluster(option)
-	if err := cluster.Serve(); err != nil {
-		log.Fatal("cluster.Serve: ", err)
+func NewCluster(option *ClusterOption) *Cluster {
+	return &Cluster{
+		option: *option,
+		router: mux.NewRouter(),
+		nodeManager: node.NewNodeManager(),
 	}
+}
+
+func (cluster *Cluster) Serve() error {
+	cluster.install()
+
+	http.Handle("/", cluster.router)
+	return http.ListenAndServe(cluster.option.address, nil)
+}
+
+func (cluster *Cluster) install() {
+	cluster.router.HandleFunc("/node/{id}", cluster.Node).Methods("GET")
+	cluster.router.HandleFunc("/node/{id}", cluster.NewNode).Methods("PUT")
+	cluster.router.HandleFunc("/node/{id}", cluster.RemoveNode).Methods("DELETE")
+	cluster.router.HandleFunc("/node", cluster.NodeList).Methods("GET")
 }

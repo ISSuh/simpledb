@@ -25,27 +25,40 @@ SOFTWARE.
 package main
 
 import (
-	"log"
-	"os"
+	"errors"
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
-func main() {
-	log.Println("SimpleDB Cluster")
-	args := os.Args[1:]
-	if len(args) < 1 {
-		log.Println("need cluster option file path.")
-		return
-	}
-
-	optionFilePath := args[0]
-	option, err := LoadClusterOptionFile(optionFilePath)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	cluster := NewCluster(option)
-	if err := cluster.Serve(); err != nil {
-		log.Fatal("cluster.Serve: ", err)
-	}
+type ClusterOption struct {
+	address string	`yaml:"address"`
 }
+
+func LoadClusterOptionFile(path string) (*ClusterOption, error) {
+	if len(path) <= 0 {
+		return nil, errors.New("Invalid option file path")
+	}
+	
+	var buffer []byte
+	var err error
+	if buffer, err = loadFile(path); err != nil {
+		return nil, err
+	}
+
+	option := &ClusterOption{address: ""}
+	if err = yaml.Unmarshal(buffer, option); err != nil {
+		return nil, err
+	}
+
+	return option, nil
+}
+
+func loadFile(path string) ([]byte, error) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+

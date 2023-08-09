@@ -22,30 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package main
+package node
 
-import (
-	"log"
-	"os"
-)
-
-func main() {
-	log.Println("SimpleDB Cluster")
-	args := os.Args[1:]
-	if len(args) < 1 {
-		log.Println("need cluster option file path.")
-		return
-	}
-
-	optionFilePath := args[0]
-	option, err := LoadClusterOptionFile(optionFilePath)
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
-
-	cluster := NewCluster(option)
-	if err := cluster.Serve(); err != nil {
-		log.Fatal("cluster.Serve: ", err)
-	}
+type NodeInfo struct {
+	Id      int    `json:"id"`
+	Address string `json:"address"`
 }

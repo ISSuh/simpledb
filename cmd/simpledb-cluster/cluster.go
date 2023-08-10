@@ -40,8 +40,8 @@ type Cluster struct {
 
 func NewCluster(option *ClusterOption) *Cluster {
 	return &Cluster{
-		option: *option,
-		router: mux.NewRouter(),
+		option:      *option,
+		router:      mux.NewRouter(),
 		nodeManager: node.NewNodeManager(),
 	}
 }
@@ -50,12 +50,18 @@ func (cluster *Cluster) Serve() error {
 	cluster.install()
 
 	http.Handle("/", cluster.router)
-	return http.ListenAndServe(cluster.option.address, nil)
+	return http.ListenAndServe(cluster.option.Address, nil)
 }
 
 func (cluster *Cluster) install() {
+	// node managing handler
 	cluster.router.HandleFunc("/node/{id}", cluster.Node).Methods("GET")
 	cluster.router.HandleFunc("/node/{id}", cluster.NewNode).Methods("PUT")
 	cluster.router.HandleFunc("/node/{id}", cluster.RemoveNode).Methods("DELETE")
 	cluster.router.HandleFunc("/node", cluster.NodeList).Methods("GET")
+
+	// storage handler
+	cluster.router.HandleFunc("/storage/{key}", cluster.GetItem).Methods("GET")
+	cluster.router.HandleFunc("/storage/{key}", cluster.PutItem).Methods("PUT")
+	cluster.router.HandleFunc("/storage/{key}", cluster.RemoveItem).Methods("DELETE")
 }

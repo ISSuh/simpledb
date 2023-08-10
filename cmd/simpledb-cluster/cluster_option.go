@@ -32,25 +32,24 @@ import (
 )
 
 type ClusterOption struct {
-	address string	`yaml:"address"`
+	Address string `yaml:"address"`
 }
 
 func LoadClusterOptionFile(path string) (*ClusterOption, error) {
 	if len(path) <= 0 {
 		return nil, errors.New("Invalid option file path")
 	}
-	
+
 	var buffer []byte
 	var err error
 	if buffer, err = loadFile(path); err != nil {
 		return nil, err
 	}
 
-	option := &ClusterOption{address: ""}
+	option := &ClusterOption{Address: ""}
 	if err = yaml.Unmarshal(buffer, option); err != nil {
 		return nil, err
 	}
-
 	return option, nil
 }
 
@@ -61,4 +60,3 @@ func loadFile(path string) ([]byte, error) {
 	}
 	return buf, nil
 }
-

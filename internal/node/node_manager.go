@@ -29,11 +29,14 @@ import (
 	"log"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type NodeManager struct {
 	nodeIdCounter int
-	nodes         map[int]NodeInfo
+	nodeMetas     map[int]NodeMetadata
+	nodeObservers map[int]*NodeObserver
+	leaderId      int
 
 	mutex sync.Mutex
 }
@@ -41,48 +44,76 @@ type NodeManager struct {
 func NewNodeManager() *NodeManager {
 	return &NodeManager{
 		nodeIdCounter: 0,
-		nodes:         make(map[int]NodeInfo),
+		nodeMetas:     make(map[int]NodeMetadata),
 	}
 }
 
-func (manager *NodeManager) AddNode(node NodeInfo) error {
+func (manager *NodeManager) AddNode(nodeMeta NodeMetadata) error {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	if _, ok := manager.nodes[node.Id]; ok {
-		return errors.New("Already exist node. " + strconv.Itoa(node.Id))
+	if _, ok := manager.nodeMetas[nodeMeta.Id]; ok {
+		return errors.New("Already exist node. " + strconv.Itoa(nodeMeta.Id))
 	}
 
-	manager.nodes[node.Id] = node
+	manager.nodeMetas[nodeMeta.Id] = nodeMeta
+	manager.nodeObservers[nodeMeta.Id] = NewNodeObserver(nodeMeta, manager)
 	return nil
 }
 
 func (manager *NodeManager) RemoveNode(id int) {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
-	delete(manager.nodes, id)
+	delete(manager.nodeMetas, id)
+	delete(manager.nodeObservers, id)
 }
 
-func (manager *NodeManager) Node(id int) *NodeInfo {
+func (manager *NodeManager) Node(id int) *NodeMetadata {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	if _, ok := manager.nodes[id]; !ok {
+	if _, ok := manager.nodeMetas[id]; !ok {
 		log.Println("node - not exist node. ", id)
 		return nil
 	}
 
-	node := manager.nodes[id]
+	node := manager.nodeMetas[id]
 	return &node
 }
 
-func (manager *NodeManager) NodeList() []NodeInfo {
+func (manager *NodeManager) NodeList() []NodeMetadata {
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
-	var list []NodeInfo
-	for _, node := range manager.nodes {
+	var list []NodeMetadata
+	for _, node := range manager.nodeMetas {
 		list = append(list, node)
 	}
 	return list
+}
+
+func (manager *NodeManager) HeartBeatDuration() time.Duration {
+	return time.Duration(30 * time.Second)
+}
+
+func (manager *NodeManager) Notify(message NodeHeartbeatMessage, status NodeStatus) {
+	needRemove := false
+
+	switch status {
+	case RUNNING:
+		if !message.Status {
+			needRemove = true
+		} else {
+			manager.leaderId = message.Id
+		}
+	case DOWN:
+		needRemove = true
+	}
+
+	if needRemove {
+		manager.RemoveNode(message.Id)
+		if manager.leaderId == message.Id {
+			manager.leaderId = -1
+		}
+	}
 }

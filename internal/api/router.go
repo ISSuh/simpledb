@@ -24,46 +24,38 @@ SOFTWARE.
 
 package api
 
-import (
-	"net/http"
-
-	"github.com/gorilla/mux"
-)
-
-type Server struct {
-	router Router
+type Route interface {
+	Method() string
+	Path() string
+	Handler() ApiHandler
 }
 
-func NewServer(router Router) *Server {
-	return &Server{
-		router: router,
+type LocalRoute struct {
+	method  string
+	path    string
+	handler ApiHandler
+}
+
+func (route LocalRoute) Method() string {
+	return route.method
+}
+
+func (route LocalRoute) Path() string {
+	return route.path
+}
+
+func (route LocalRoute) Handler() ApiHandler {
+	return route.handler
+}
+
+func NewRoute(method, path string, handler ApiHandler) Route {
+	return LocalRoute{
+		method:  method,
+		path:    path,
+		handler: handler,
 	}
 }
 
-func (server *Server) Serve(address string) error {
-	muxer := server.createMux()
-	http.Handle("/", muxer)
-	return http.ListenAndServe(address, nil)
-}
-
-func (server *Server) Close() {
-}
-
-func (server *Server) createMux() *mux.Router {
-	muxer := mux.NewRouter()
-
-	for _, route := range server.router.Route() {
-		muxer.Path(route.Path()).Methods(route.Method()).Handler(server.bindHttpHandler(route.Handler()))
-	}
-}
-
-func (server *Server) bindHttpHandler(apiHandler ApiHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		args := mux.Vars(r)
-		if args == nil {
-			args = make(map[string]string)
-		}
-
-		apiHandler(w, r, args)
-	}
+type Router interface {
+	Route() []Route
 }

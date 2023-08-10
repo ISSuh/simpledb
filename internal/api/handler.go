@@ -24,46 +24,17 @@ SOFTWARE.
 
 package api
 
-import (
-	"net/http"
+import "net/http"
 
-	"github.com/gorilla/mux"
-)
+type ApiHandler = func(w http.ResponseWriter, r *http.Request, args map[string]string)
 
-type Server struct {
-	router Router
-}
+func HandleResponse(w http.ResponseWriter, message []byte, httpStatusCode int) {
+	w.WriteHeader(httpStatusCode)
 
-func NewServer(router Router) *Server {
-	return &Server{
-		router: router,
-	}
-}
-
-func (server *Server) Serve(address string) error {
-	muxer := server.createMux()
-	http.Handle("/", muxer)
-	return http.ListenAndServe(address, nil)
-}
-
-func (server *Server) Close() {
-}
-
-func (server *Server) createMux() *mux.Router {
-	muxer := mux.NewRouter()
-
-	for _, route := range server.router.Route() {
-		muxer.Path(route.Path()).Methods(route.Method()).Handler(server.bindHttpHandler(route.Handler()))
-	}
-}
-
-func (server *Server) bindHttpHandler(apiHandler ApiHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		args := mux.Vars(r)
-		if args == nil {
-			args = make(map[string]string)
-		}
-
-		apiHandler(w, r, args)
+	if (http.StatusOK == httpStatusCode) &&
+		(message != nil) &&
+		(len(message) > 0) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(message)
 	}
 }

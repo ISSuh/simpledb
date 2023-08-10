@@ -64,4 +64,7 @@ func (cluster *Cluster) install() {
 	cluster.router.HandleFunc("/storage/{key}", cluster.GetItem).Methods("GET")
 	cluster.router.HandleFunc("/storage/{key}", cluster.PutItem).Methods("PUT")
 	cluster.router.HandleFunc("/storage/{key}", cluster.RemoveItem).Methods("DELETE")
+
+	// http.Handler
+	// cluster.router.Path("/dsd").Methods("GET").Handler()
 }

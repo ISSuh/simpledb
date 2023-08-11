@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package storage
+package engine
 
 import (
 	"github.com/ISSuh/simpledb/internal/option"
 )
 
-type Storage interface {
-	Open(option option.SimpleDbOption) error
+type StorageEngine interface {
+	Open(option option.StorageOption) error
 	Put(key string, value []byte) error
 	Get(key string) ([]byte, error)
 	Remove(key string) error

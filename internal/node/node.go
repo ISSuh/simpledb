@@ -26,18 +26,19 @@ package node
 
 import (
 	"github.com/ISSuh/raft"
+	"github.com/ISSuh/simpledb/internal/option"
 )
 
 type Node struct {
-	id      int
+	option  option.NodeOption
 	service *raft.RaftService
 }
 
-func NewNode(id int, address string) *Node {
-	service := raft.NewRaftService(id, address)
+func NewNode(option option.NodeOption) *Node {
+	service := raft.NewRaftService(option.Id, option.Address)
 	service.RegistTrasnporter(raft.NewRpcTransporter())
 	return &Node{
-		id:      id,
+		option:  option,
 		service: service,
 	}
 }

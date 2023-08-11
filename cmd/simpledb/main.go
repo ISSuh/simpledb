@@ -48,8 +48,13 @@ func main() {
 		return
 	}
 
-	node := NewSimpleDBNode(dbOption)
+	var node *SimpleDBNode
+	if node = NewSimpleDBNode(dbOption); node == nil {
+		logrus.Fatal("SimpleDB.NewSimpleDBNode - can not create db")
+		return
+	}
+
 	if err := node.Serve(); err != nil {
-		logrus.Fatal("node.Serve - ", err)
+		logrus.Fatal("SimpleDB.Serve - ", err)
 	}
 }

@@ -25,21 +25,35 @@ SOFTWARE.
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/ISSuh/simpledb/internal/api"
+	"github.com/ISSuh/simpledb/internal/engine"
+	"github.com/ISSuh/simpledb/internal/engine/lsm"
+	"github.com/ISSuh/simpledb/internal/node"
 	"github.com/ISSuh/simpledb/internal/option"
+	"github.com/sirupsen/logrus"
+)
+
+const (
+	HttpSheme = "http://"
 )
 
 type SimpleDbOption struct {
-	nodeOption    option.NodeOption    `yaml:"address"`
-	storageOption option.StorageOption `yaml:"address"`
+	NodeOption    option.NodeOption    `yaml:"node"`
+	StorageOption option.StorageOption `yaml:"storage"`
 }
 
 func NewSimpleDbOption() *SimpleDbOption {
 	return &SimpleDbOption{
-		nodeOption:    option.NodeOption{},
-		storageOption: option.NewStorageOption(""),
+		NodeOption:    option.NodeOption{},
+		StorageOption: option.NewStorageOption(""),
 	}
 }
 
@@ -48,36 +62,98 @@ type SimpleDBNode struct {
 
 	route  []api.Route
 	server *api.Server
+
+	dbNode *node.Node
+	engine engine.StorageEngine
 }
 
 func NewSimpleDBNode(option *SimpleDbOption) *SimpleDBNode {
-	node := &SimpleDBNode{
+	n := &SimpleDBNode{
 		option: *option,
 		route:  nil,
 		server: nil,
+		dbNode: node.NewNode(option.NodeOption),
+		engine: lsm.NewLsmStorageStorage(),
 	}
 
-	node.install()
-	node.server = api.NewServer(node)
-	return node
+	if err := n.engine.Open(n.option.StorageOption); err != nil {
+		return nil
+	}
+
+	n.install()
+	n.server = api.NewServer(n)
+	return n
 }
 
-func (node *SimpleDBNode) Serve() error {
-	return node.server.Serve(node.option.nodeOption.Address)
+func (n *SimpleDBNode) Serve() error {
+	go n.ConnectToCluster()
+	return n.server.Serve(n.option.NodeOption.Address)
 }
 
-func (node *SimpleDBNode) Route() []api.Route {
-	return node.route
+func (n *SimpleDBNode) Route() []api.Route {
+	return n.route
 }
 
-func (node *SimpleDBNode) install() {
-	node.route = []api.Route{
+func (n *SimpleDBNode) install() {
+	n.route = []api.Route{
 		// node managing handler
-		api.NewRoute(http.MethodGet, "/heartbeat", node.Heartbeat),
+		api.NewRoute(http.MethodGet, "/heartbeat", n.Heartbeat),
 
 		// storage handler
-		api.NewRoute(http.MethodGet, "/storage/{key}", node.GetItem),
-		api.NewRoute(http.MethodPut, "/storage/{key}", node.PutItem),
-		api.NewRoute(http.MethodDelete, "/storage/{key}", node.RemoveItem),
+		api.NewRoute(http.MethodGet, "/storage/{key}", n.GetItem),
+		api.NewRoute(http.MethodPut, "/storage/{key}", n.PutItem),
+		api.NewRoute(http.MethodDelete, "/storage/{key}", n.RemoveItem),
 	}
+}
+
+func (n *SimpleDBNode) ConnectToCluster() {
+	id := n.option.NodeOption.Id
+	address := n.option.NodeOption.Address
+	clusterAddress := n.option.NodeOption.ClusterAddress
+
+	registNodeUrl := HttpSheme + clusterAddress + "/node/" + strconv.Itoa(id)
+	nodeMeta := node.NodeMetadata{Id: id, Address: address}
+	nodeMetaJson, _ := json.Marshal(nodeMeta)
+	buffer := bytes.NewBuffer(nodeMetaJson)
+	_, err := n.requestToCluster(http.MethodPut, registNodeUrl, buffer)
+	if err != nil {
+		logrus.Error(err)
+		return
+	}
+}
+
+func (n *SimpleDBNode) requestToCluster(method, url string, body io.Reader) ([]byte, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	client := http.Client{Timeout: time.Duration(5 * time.Second)}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return n.handleResponse(res)
+}
+
+func (n *SimpleDBNode) handleResponse(resp *http.Response) ([]byte, error) {
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return n.extractBody(resp)
+	case http.StatusInternalServerError:
+		return nil, errors.New("http.StatusInternalServerError")
+	case http.StatusBadRequest:
+		return nil, errors.New("http.StatusBadRequest")
+	default:
+		return nil, errors.New("unsupport error")
+	}
+}
+
+func (n *SimpleDBNode) extractBody(resp *http.Response) ([]byte, error) {
+	defer resp.Body.Close()
+	buffer, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return buffer, nil
 }

@@ -28,6 +28,7 @@ import (
 	"errors"
 	"io/ioutil"
 
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -42,6 +43,7 @@ func LoadOptionFile(path string, option interface{}) error {
 		return err
 	}
 
+	logrus.Infoln("\n", string(buffer))
 	if err = yaml.Unmarshal(buffer, option); err != nil {
 		return err
 	}

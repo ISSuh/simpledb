@@ -1,7 +1,7 @@
 # simpledb config
-NodeOption:
+node:
   id: 0
   address: 127.0.0.1:33665
   cluster_address: 127.0.0.1:33660
-StorageOption:
+storage:
   path: ../test/id0

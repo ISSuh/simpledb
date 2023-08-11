@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package storage
+package lsm
 
 import (
 	"errors"
@@ -41,7 +41,7 @@ func NewLsmStorageStorage() *LsmStorageStorage {
 	}
 }
 
-func (lss *LsmStorageStorage) Open(option option.SimpleDbOption) error {
+func (lss *LsmStorageStorage) Open(option option.StorageOption) error {
 	storageOption := lss.parseOption(option)
 	lss.engine = storage.NewStorage(storageOption)
 	if lss.engine == nil {
@@ -72,7 +72,7 @@ func (lss *LsmStorageStorage) Remove(key string) error {
 	return nil
 }
 
-func (lss *LsmStorageStorage) parseOption(option option.SimpleDbOption) storage.Option {
+func (lss *LsmStorageStorage) parseOption(option option.StorageOption) storage.Option {
 	var storageOptions storage.Option
 	storageOptions.Path = option.Path
 	storageOptions.BlockSize = option.BlockSize

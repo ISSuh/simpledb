@@ -25,27 +25,31 @@ SOFTWARE.
 package main
 
 import (
-	"log"
 	"os"
+
+	"github.com/ISSuh/simpledb/internal/option"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	log.Println("SimpleDB Cluster")
+	logrus.Infoln("SimpleDB Cluster")
 	args := os.Args[1:]
 	if len(args) < 1 {
-		log.Println("need cluster option file path.")
+		logrus.Fatal("need cluster option file path.")
 		return
 	}
 
 	optionFilePath := args[0]
-	option, err := LoadClusterOptionFile(optionFilePath)
+
+	clusterOption := NewClusterOption()
+	err := option.LoadOptionFile(optionFilePath, clusterOption)
 	if err != nil {
-		log.Println(err.Error())
+		logrus.Fatal("Cluster.LoadOptionFile - ", err)
 		return
 	}
 
-	cluster := NewCluster(option)
+	cluster := NewCluster(clusterOption)
 	if err := cluster.Serve(); err != nil {
-		log.Fatal("cluster.Serve: ", err)
+		logrus.Fatal("Cluster.Serve - ", err)
 	}
 }

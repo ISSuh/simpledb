@@ -25,83 +25,26 @@ SOFTWARE.
 package main
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/ISSuh/simpledb/internal/node"
-	"github.com/gorilla/mux"
+	"github.com/ISSuh/simpledb/internal/api"
+	"github.com/sirupsen/logrus"
 )
 
-func (cluster *Cluster) GetItem(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("NewNode - id ", path)
-
-	if _, err := strconv.Atoi(path); err != nil {
-		response(w, "invalid path", http.StatusBadRequest)
-		return
-	}
-
-	var node node.NodeMetadata
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&node); err != nil {
-		log.Println("NewNode - invalid message,. ", r.Body)
-		response(w, "invalid message", http.StatusBadRequest)
-		return
-	}
-
-	if err := cluster.nodeManager.AddNode(node); err != nil {
-		response(w, "already exist", http.StatusBadRequest)
-	}
-	response(w, "", http.StatusOK)
+func (cluster *Cluster) GetItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	key := args["key"]
+	logrus.Infoln("Cluster.GetItem - key: ", key)
+	api.HandleResponse(w, nil, http.StatusInternalServerError)
 }
 
-func (cluster *Cluster) PutItem(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("NewNode - id ", path)
-
-	if _, err := strconv.Atoi(path); err != nil {
-		response(w, "invalid path", http.StatusBadRequest)
-		return
-	}
-
-	var node node.NodeMetadata
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&node); err != nil {
-		log.Println("NewNode - invalid message,. ", r.Body)
-		response(w, "invalid message", http.StatusBadRequest)
-		return
-	}
-
-	if err := cluster.nodeManager.AddNode(node); err != nil {
-		response(w, "already exist", http.StatusBadRequest)
-	}
-	response(w, "", http.StatusOK)
+func (cluster *Cluster) PutItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	key := args["key"]
+	logrus.Infoln("Cluster.PutItem - key: ", key)
+	api.HandleResponse(w, nil, http.StatusInternalServerError)
 }
 
-func (cluster *Cluster) RemoveItem(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("NewNode - id ", path)
-
-	if _, err := strconv.Atoi(path); err != nil {
-		response(w, "invalid path", http.StatusBadRequest)
-		return
-	}
-
-	var node node.NodeMetadata
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&node); err != nil {
-		log.Println("NewNode - invalid message,. ", r.Body)
-		response(w, "invalid message", http.StatusBadRequest)
-		return
-	}
-
-	if err := cluster.nodeManager.AddNode(node); err != nil {
-		response(w, "already exist", http.StatusBadRequest)
-	}
-	response(w, "", http.StatusOK)
+func (cluster *Cluster) RemoveItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	key := args["key"]
+	logrus.Infoln("Cluster.RemoveItem - key: ", key)
+	api.HandleResponse(w, nil, http.StatusInternalServerError)
 }

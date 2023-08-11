@@ -26,13 +26,16 @@ package node
 
 import (
 	"errors"
-	"log"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/ISSuh/simpledb/internal/option"
+	"github.com/sirupsen/logrus"
 )
 
 type NodeManager struct {
+	option        option.NodeManagerOption
 	nodeIdCounter int
 	nodeMetas     map[int]NodeMetadata
 	nodeObservers map[int]*NodeObserver
@@ -41,10 +44,12 @@ type NodeManager struct {
 	mutex sync.Mutex
 }
 
-func NewNodeManager() *NodeManager {
+func NewNodeManager(option option.NodeManagerOption) *NodeManager {
 	return &NodeManager{
+		option:        option,
 		nodeIdCounter: 0,
 		nodeMetas:     make(map[int]NodeMetadata),
+		nodeObservers: make(map[int]*NodeObserver),
 	}
 }
 
@@ -53,7 +58,7 @@ func (manager *NodeManager) AddNode(nodeMeta NodeMetadata) error {
 	defer manager.mutex.Unlock()
 
 	if _, ok := manager.nodeMetas[nodeMeta.Id]; ok {
-		return errors.New("Already exist node. " + strconv.Itoa(nodeMeta.Id))
+		return errors.New("already exist node. " + strconv.Itoa(nodeMeta.Id))
 	}
 
 	manager.nodeMetas[nodeMeta.Id] = nodeMeta
@@ -73,7 +78,7 @@ func (manager *NodeManager) Node(id int) *NodeMetadata {
 	defer manager.mutex.Unlock()
 
 	if _, ok := manager.nodeMetas[id]; !ok {
-		log.Println("node - not exist node. ", id)
+		logrus.Errorln("NodeManager.Node - not exist node. ", id)
 		return nil
 	}
 
@@ -93,7 +98,11 @@ func (manager *NodeManager) NodeList() []NodeMetadata {
 }
 
 func (manager *NodeManager) HeartBeatDuration() time.Duration {
-	return time.Duration(30 * time.Second)
+	return time.Duration(1 * time.Second)
+}
+
+func (manager *NodeManager) HeartBeatRequestTimeout() time.Duration {
+	return time.Duration(5 * time.Second)
 }
 
 func (manager *NodeManager) Notify(message NodeHeartbeatMessage, status NodeStatus) {

@@ -46,15 +46,12 @@ func (server *Server) Serve(address string) error {
 	return http.ListenAndServe(address, nil)
 }
 
-func (server *Server) Close() {
-}
-
 func (server *Server) createMux() *mux.Router {
 	muxer := mux.NewRouter()
-
 	for _, route := range server.router.Route() {
 		muxer.Path(route.Path()).Methods(route.Method()).Handler(server.bindHttpHandler(route.Handler()))
 	}
+	return muxer
 }
 
 func (server *Server) bindHttpHandler(apiHandler ApiHandler) http.HandlerFunc {
@@ -63,7 +60,6 @@ func (server *Server) bindHttpHandler(apiHandler ApiHandler) http.HandlerFunc {
 		if args == nil {
 			args = make(map[string]string)
 		}
-
 		apiHandler(w, r, args)
 	}
 }

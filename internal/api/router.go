@@ -24,6 +24,10 @@ SOFTWARE.
 
 package api
 
+type Router interface {
+	Route() []Route
+}
+
 type Route interface {
 	Method() string
 	Path() string
@@ -54,8 +58,4 @@ func NewRoute(method, path string, handler ApiHandler) Route {
 		path:    path,
 		handler: handler,
 	}
-}
-
-type Router interface {
-	Route() []Route
 }

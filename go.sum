@@ -4,6 +4,8 @@ github.com/ISSuh/lsm-tree v0.0.0-20230809134500-0559e4b0c29e h1:Cgyah1AA/xbce3YT
 github.com/ISSuh/lsm-tree v0.0.0-20230809134500-0559e4b0c29e/go.mod h1:DGtS92V42New1LLJLh0f3QugHGKCLKvYn8r1UwulPok=
 github.com/ISSuh/raft v0.0.0-20230809134435-65ebc25cb56d h1:AhSGKjNc+WXAm6VB2wflDP805Zt1REArSKE6cM3ZBwc=
 github.com/ISSuh/raft v0.0.0-20230809134435-65ebc25cb56d/go.mod h1:m9l1ka1dd0FS1Z1ZVtksw1atvbixh7q0AgfQzF8U14E=
+github.com/ISSuh/raft v0.0.0-20230810135850-909001ed71a9 h1:HLv8K9Cqb1JYqOcE+cXqKDnw9GdpzhpQcOUYS7Fcp9E=
+github.com/ISSuh/raft v0.0.0-20230810135850-909001ed71a9/go.mod h1:m9l1ka1dd0FS1Z1ZVtksw1atvbixh7q0AgfQzF8U14E=
 github.com/ISSuh/skiplist v0.0.2 h1:AQsMcFT55RyytsKmMEXA2Y2RABMyp8RyIO6hiXksc38=
 github.com/ISSuh/skiplist v0.0.2/go.mod h1:+A7Z1uiUDB7BdHUgM+ZtYJqCiJ2deUWLh7kry7GbSBo=
 github.com/antonfisher/nested-logrus-formatter v1.3.1 h1:NFJIr+pzwv5QLHTPyKz9UMEoHck02Q9L0FP13b/xSbQ=

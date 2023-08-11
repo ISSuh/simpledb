@@ -27,44 +27,61 @@ package main
 import (
 	"net/http"
 
+	"github.com/ISSuh/simpledb/internal/api"
 	"github.com/ISSuh/simpledb/internal/node"
-	"github.com/gorilla/mux"
+	"github.com/ISSuh/simpledb/internal/option"
 )
+
+type ClusterOption struct {
+	Address           string                   `yaml:"address"`
+	NodeManagerOption option.NodeManagerOption `yaml:"node_manager"`
+}
+
+func NewClusterOption() *ClusterOption {
+	return &ClusterOption{Address: "", NodeManagerOption: option.NewNodeManagerOption()}
+}
 
 type Cluster struct {
 	option ClusterOption
-	router *mux.Router
+
+	route  []api.Route
+	server *api.Server
 
 	nodeManager *node.NodeManager
 }
 
 func NewCluster(option *ClusterOption) *Cluster {
-	return &Cluster{
+	cluster := &Cluster{
 		option:      *option,
-		router:      mux.NewRouter(),
-		nodeManager: node.NewNodeManager(),
+		route:       nil,
+		server:      nil,
+		nodeManager: node.NewNodeManager(option.NodeManagerOption),
 	}
+
+	cluster.install()
+	cluster.server = api.NewServer(cluster)
+	return cluster
 }
 
 func (cluster *Cluster) Serve() error {
-	cluster.install()
+	return cluster.server.Serve(cluster.option.Address)
+}
 
-	http.Handle("/", cluster.router)
-	return http.ListenAndServe(cluster.option.Address, nil)
+func (router *Cluster) Route() []api.Route {
+	return router.route
 }
 
 func (cluster *Cluster) install() {
-	// node managing handler
-	cluster.router.HandleFunc("/node/{id}", cluster.Node).Methods("GET")
-	cluster.router.HandleFunc("/node/{id}", cluster.NewNode).Methods("PUT")
-	cluster.router.HandleFunc("/node/{id}", cluster.RemoveNode).Methods("DELETE")
-	cluster.router.HandleFunc("/node", cluster.NodeList).Methods("GET")
+	cluster.route = []api.Route{
+		// node managing handler
+		api.NewRoute(http.MethodGet, "/node/{id}", cluster.Node),
+		api.NewRoute(http.MethodPut, "/node/{id}", cluster.NewNode),
+		api.NewRoute(http.MethodDelete, "/node/{id}", cluster.RemoveNode),
+		api.NewRoute(http.MethodGet, "/node", cluster.NodeList),
 
-	// storage handler
-	cluster.router.HandleFunc("/storage/{key}", cluster.GetItem).Methods("GET")
-	cluster.router.HandleFunc("/storage/{key}", cluster.PutItem).Methods("PUT")
-	cluster.router.HandleFunc("/storage/{key}", cluster.RemoveItem).Methods("DELETE")
-
-	// http.Handler
-	// cluster.router.Path("/dsd").Methods("GET").Handler()
+		// storage handler
+		api.NewRoute(http.MethodGet, "/storage/{key}", cluster.GetItem),
+		api.NewRoute(http.MethodPut, "/storage/{key}", cluster.PutItem),
+		api.NewRoute(http.MethodDelete, "/storage/{key}", cluster.RemoveItem),
+	}
 }

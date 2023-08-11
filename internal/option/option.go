@@ -24,63 +24,34 @@ SOFTWARE.
 
 package option
 
-const (
-	_      = iota
-	KB int = 1 << (10 * iota)
-	MB
+import (
+	"errors"
+	"io/ioutil"
+
+	"gopkg.in/yaml.v2"
 )
 
-type SimpleDbOption struct {
-	// default directory path where placed files
-	Path string
-
-	// max level of files
-	// start level is 0
-	// the last level has unlimit number of files
-	Level int
-
-	// max block size on table
-	BlockSize int
-
-	// max L0 table size
-	TableSize int
-
-	// limited number of files on level
-	// key is level, value is limited number
-	// the last level has unlimit number of files
-	LimitedFilesNumOnL0 int
-
-	// offset of calculated table size whne inscrease level
-	// if tableSize value is 10Mb and tableSizeOffset value is 10,
-	// the Max L0 file size is 10Mb and L1 file size is 100Mb(10Mb * 10)
-	TableSizeOffset int
-
-	// max level value on skiplist
-	LevelOnSkipList int
-
-	// limited number of memtable
-	MemTableSize int
-
-	// simpledb cluster address
-	ClusterAddress string
-}
-
-func NewSimpleDbOption(path string) SimpleDbOption {
-	return SimpleDbOption{
-		Path:                path,
-		Level:               7,
-		BlockSize:           4,
-		TableSize:           2 * MB, // 1KB
-		LimitedFilesNumOnL0: 2,
-		TableSizeOffset:     10,
-		LevelOnSkipList:     5,
-		MemTableSize:        4 * MB,
+func LoadOptionFile(path string, option interface{}) error {
+	if len(path) <= 0 {
+		return errors.New("Invalid option file path")
 	}
+
+	var buffer []byte
+	var err error
+	if buffer, err = loadFile(path); err != nil {
+		return err
+	}
+
+	if err = yaml.Unmarshal(buffer, option); err != nil {
+		return err
+	}
+	return nil
 }
 
-type SimpleDbClusterOption struct {
-}
-
-func NewSimpleDbClusterOption() SimpleDbClusterOption {
-	return SimpleDbClusterOption{}
+func loadFile(path string) ([]byte, error) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
 }

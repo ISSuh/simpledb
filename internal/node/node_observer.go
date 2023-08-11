@@ -29,9 +29,12 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
+	HttpSheme    = "http://"
 	HeartBeatUrl = "/heartbeat"
 )
 
@@ -51,20 +54,22 @@ type NodeHeartbeatMessage struct {
 
 type NodeObserverNotifier interface {
 	HeartBeatDuration() time.Duration
+	HeartBeatRequestTimeout() time.Duration
 	Notify(message NodeHeartbeatMessage, status NodeStatus)
 }
 
 type NodeObserver struct {
 	nodeMetadata NodeMetadata
-	timeout      int
 	notifier     NodeObserverNotifier
 	httpClient   *http.Client
+	running      chan bool
 }
 
 func NewNodeObserver(nodeMeta NodeMetadata, notifier NodeObserverNotifier) *NodeObserver {
 	observer := &NodeObserver{
 		nodeMetadata: nodeMeta,
 		notifier:     notifier,
+		running:      make(chan bool),
 	}
 
 	transport := http.Transport{
@@ -79,15 +84,31 @@ func NewNodeObserver(nodeMeta NodeMetadata, notifier NodeObserverNotifier) *Node
 	return observer
 }
 
+func (observer *NodeObserver) StartHeartbeat() {
+
+}
+
+func (observer *NodeObserver) StopHeartbeat() {
+
+}
+
 func (observer *NodeObserver) dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, observer.notifier.HeartBeatDuration())
+	return net.DialTimeout(network, addr, observer.notifier.HeartBeatRequestTimeout())
 }
 
 func (observer *NodeObserver) heartbeat() {
-	url := observer.nodeMetadata.Address + HeartBeatUrl
+	logrus.Errorln("NodeObserver.heartbeat - start")
+	url := HttpSheme + observer.nodeMetadata.Address + HeartBeatUrl
+	repuest, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logrus.Errorln("NodeObserver.heartbeat - err : ", err)
+		return
+	}
 
 	for {
-		_, err := observer.httpClient.Get(url)
+		time.Sleep(observer.notifier.HeartBeatDuration())
+
+		_, err := observer.httpClient.Do(repuest)
 		if os.IsTimeout(err) {
 			message := NodeHeartbeatMessage{
 				Timestamp: 0,

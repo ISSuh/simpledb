@@ -26,94 +26,98 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/ISSuh/simpledb/internal/api"
 	"github.com/ISSuh/simpledb/internal/node"
-	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 )
 
-func (cluster *Cluster) NewNode(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("NewNode - id ", path)
+func (cluster *Cluster) NewNode(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	path := args["id"]
+	logrus.Infoln("Cluster.NewNode - id: ", path)
 
 	if _, err := strconv.Atoi(path); err != nil {
-		response(w, "invalid path", http.StatusBadRequest)
+		logrus.Errorln("Cluster.NewNode - ", err)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	}
 
 	var node node.NodeMetadata
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&node); err != nil {
-		log.Println("NewNode - invalid message,. ", r.Body)
-		response(w, "invalid message", http.StatusBadRequest)
+		logrus.Errorln("Cluster.NewNode - ", err)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	}
 
 	if err := cluster.nodeManager.AddNode(node); err != nil {
-		response(w, "already exist", http.StatusBadRequest)
+		logrus.Errorln("Cluster.Node - ", err)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 	}
-	response(w, "", http.StatusOK)
+	api.HandleResponse(w, nil, http.StatusOK)
 }
 
-func (cluster *Cluster) RemoveNode(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("RemoveNode - id : ", path)
+func (cluster *Cluster) RemoveNode(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	path := args["id"]
+	logrus.Infoln("Cluster.RemoveNode - id: ", path)
 
 	var id int
 	var err error
 	if id, err = strconv.Atoi(path); err != nil {
-		response(w, "Bad Request. invalid path", http.StatusBadRequest)
+		logrus.Errorln("Cluster.Node - ", err)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	}
 
 	cluster.nodeManager.RemoveNode(id)
-	response(w, "", http.StatusOK)
+	api.HandleResponse(w, nil, http.StatusOK)
 }
 
-func (cluster *Cluster) Node(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	path := params["id"]
-	log.Println("Node - id : ", path)
+func (cluster *Cluster) Node(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	path := args["id"]
+	logrus.Infoln("Cluster.Node - id: ", path)
 
 	var id int
 	var err error
 	if id, err = strconv.Atoi(path); err != nil {
-		response(w, "invalid path", http.StatusBadRequest)
+		logrus.Errorln("Cluster.Node - ", err)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	}
 
 	node := cluster.nodeManager.Node(id)
 	if node == nil {
-		response(w, "invalid id", http.StatusBadRequest)
+		logrus.Errorln("Cluster.Node - invalid node id. ", id)
+		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	}
 
 	body, err := json.Marshal(node)
 	if err != nil {
-		response(w, "data marshaling fail", http.StatusInternalServerError)
+		logrus.Errorln("Cluster.Node - ", err)
+		api.HandleResponse(w, nil, http.StatusInternalServerError)
 		return
 	}
 
-	response(w, string(body), http.StatusOK)
+	api.HandleResponse(w, body, http.StatusOK)
 }
 
-func (cluster *Cluster) NodeList(w http.ResponseWriter, r *http.Request) {
-	log.Println("NodeList")
+func (cluster *Cluster) NodeList(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	logrus.Infoln("Cluster.NodeList")
 
 	list := cluster.nodeManager.NodeList()
 	if len(list) <= 0 {
-		response(w, "", http.StatusOK)
+		api.HandleResponse(w, nil, http.StatusOK)
 		return
 	}
 
 	body, err := json.Marshal(list)
 	if err != nil {
-		response(w, "data marshaling fail", http.StatusInternalServerError)
+		logrus.Errorln("Cluster.Node - ", err)
+		api.HandleResponse(w, nil, http.StatusInternalServerError)
 		return
 	}
-	response(w, string(body), http.StatusOK)
+	api.HandleResponse(w, body, http.StatusOK)
 }

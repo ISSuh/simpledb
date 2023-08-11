@@ -1,2 +1,5 @@
 # simpledb-cluster config
-address: 0.0.0.0:33669
+address: 0.0.0.0:33660
+node_manager:
+  heartbeat_duration: 30
+  heartbeat_request_timeout: 3000

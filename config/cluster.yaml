@@ -1,5 +1,15 @@
 # simpledb-cluster config
+
+# http server address
 address: 0.0.0.0:33660
+
+# node manager option
 node_manager:
+
+  # heartbeat request duration.
+  # second.
   heartbeat_duration: 30
+
+  # heartbeat request timeout.
+  # millisecond
   heartbeat_request_timeout: 3000

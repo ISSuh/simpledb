@@ -1,43 +1,54 @@
 # simpledb config
 
+# HTTP server address
+address: 127.0.0.1:33665
+
+# simpledb standalone mode
+# Set this option true if you don't need any functionality of distribution.
+# if this option is true,
+# do not connect cluster and not create Raft Node object.
+standalone: true
+
 # raft node option
+# this option is used when standalone option is true
 node:
   # node id
-  id: 0
+  node_id: 0
 
   # RPC server address
-  address: 127.0.0.1:33665
+  rpc_address: 127.0.0.1:33666
 
   # cluster address for connect
   cluster_address: 127.0.0.1:33660
+
 # storage option
 storage:
-	# default directory path where placed files
-  path: ../test/id0
+  # default directory path where placed files
+  path: ../temp/id0
 
-	# max level of files
-	# start level is 0
+  # max level of files
+  # start level is 0
   # the last level has unlimit number of files
   level: 7
 
-	# max block size on table
-  block_size: 4M
+  # max block size on table
+  block_size: 4K
 
-	# max L0 table size
+  # max L0 table size
   table_size: 2M
 
-	# limited number of files on level
-	# key is level, value is limited number
-	# the last level has unlimit number of files
+  # limited number of files on level
+  # key is level, value is limited number
+  # the last level has unlimit number of files
   limited_file_num_on_l0: 2
 
-	# offset of calculated table size whne inscrease level
-	# if tableSize value is 10Mb and tableSizeOffset value is 10,
-	# the Max L0 file size is 10Mb and L1 file size is 100Mb(10Mb * 10)
+  # offset of calculated table size whne inscrease level
+  # if tableSize value is 10Mb and tableSizeOffset value is 10,
+  # the Max L0 file size is 10Mb and L1 file size is 100Mb(10Mb * 10)
   table_size_offset: 10
 
-	# max level value on skiplist
+  # max level value on skiplist
   level_on_skiplist: 5
 
-	# limited number of memtable
-  memtable_size: 4MB  
+  # limited number of memtable
+  memtable_size: 4M

@@ -46,14 +46,18 @@ const (
 )
 
 type SimpleDbOption struct {
-	NodeOption    option.NodeOption    `yaml:"node"`
-	StorageOption option.StorageOption `yaml:"storage"`
+	Address        string               `yaml:"address"`
+	StandAloneMode bool                 `yaml:"standalone"`
+	NodeOption     option.NodeOption    `yaml:"node"`
+	StorageOption  option.StorageOption `yaml:"storage"`
 }
 
 func NewSimpleDbOption() *SimpleDbOption {
 	return &SimpleDbOption{
-		NodeOption:    option.NodeOption{},
-		StorageOption: option.NewStorageOption(""),
+		Address:        "",
+		StandAloneMode: false,
+		NodeOption:     option.NodeOption{},
+		StorageOption:  option.NewStorageOption(""),
 	}
 }
 
@@ -72,8 +76,12 @@ func NewSimpleDBNode(option *SimpleDbOption) *SimpleDBNode {
 		option: *option,
 		route:  nil,
 		server: nil,
-		dbNode: node.NewNode(option.NodeOption),
+		dbNode: nil,
 		engine: lsm.NewLsmStorageStorage(),
+	}
+
+	if !option.StandAloneMode {
+		n.dbNode = node.NewNode(option.NodeOption)
 	}
 
 	if err := n.engine.Open(n.option.StorageOption); err != nil {
@@ -86,8 +94,19 @@ func NewSimpleDBNode(option *SimpleDbOption) *SimpleDBNode {
 }
 
 func (n *SimpleDBNode) Serve() error {
-	go n.ConnectToCluster()
-	return n.server.Serve(n.option.NodeOption.Address)
+	if !n.option.StandAloneMode {
+		go n.ConnectToCluster()
+	}
+
+	return n.server.Serve(n.option.Address)
+}
+
+func (n *SimpleDBNode) Stop() {
+	if !n.option.StandAloneMode {
+		go n.Stop()
+	}
+
+	n.engine.Close()
 }
 
 func (n *SimpleDBNode) Route() []api.Route {
@@ -96,19 +115,21 @@ func (n *SimpleDBNode) Route() []api.Route {
 
 func (n *SimpleDBNode) install() {
 	n.route = []api.Route{
-		// node managing handler
-		api.NewRoute(http.MethodGet, "/heartbeat", n.Heartbeat),
-
 		// storage handler
 		api.NewRoute(http.MethodGet, "/storage/{key}", n.GetItem),
 		api.NewRoute(http.MethodPut, "/storage/{key}", n.PutItem),
 		api.NewRoute(http.MethodDelete, "/storage/{key}", n.RemoveItem),
 	}
+
+	if !n.option.StandAloneMode {
+		// node managing handler
+		n.route = append(n.route, api.NewRoute(http.MethodGet, "/heartbeat", n.Heartbeat))
+	}
 }
 
 func (n *SimpleDBNode) ConnectToCluster() {
-	id := n.option.NodeOption.Id
-	address := n.option.NodeOption.Address
+	id := n.option.NodeOption.NodeId
+	address := n.option.Address
 	clusterAddress := n.option.NodeOption.ClusterAddress
 
 	registNodeUrl := HttpSheme + clusterAddress + "/node/" + strconv.Itoa(id)

@@ -35,7 +35,7 @@ type Node struct {
 }
 
 func NewNode(option option.NodeOption) *Node {
-	service := raft.NewRaftService(option.Id, option.Address)
+	service := raft.NewRaftService(option.NodeId, option.RpcAddress)
 	service.RegistTrasnporter(raft.NewRpcTransporter())
 	return &Node{
 		option:  option,

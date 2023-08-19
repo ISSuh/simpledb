@@ -50,10 +50,15 @@ func (lss *LsmStorageStorage) Open(option option.StorageOption) error {
 	return nil
 }
 
+func (lss *LsmStorageStorage) Close() {
+	lss.engine.Stop()
+}
+
 func (lss *LsmStorageStorage) Put(key string, value []byte) error {
 	if lss.engine == nil {
 		return errors.New("storage engine not opend")
 	}
+	lss.engine.Set(key, value)
 	return nil
 }
 
@@ -72,14 +77,21 @@ func (lss *LsmStorageStorage) Remove(key string) error {
 	return nil
 }
 
-func (lss *LsmStorageStorage) parseOption(option option.StorageOption) storage.Option {
+func (lss *LsmStorageStorage) parseOption(storageOption option.StorageOption) storage.Option {
 	var storageOptions storage.Option
-	storageOptions.Path = option.Path
-	storageOptions.BlockSize = option.BlockSize
-	storageOptions.TableSize = option.TableSize
-	storageOptions.LimitedFilesNumOnL0 = option.LimitedFilesNumOnL0
-	storageOptions.TableSizeOffset = option.TableSizeOffset
-	storageOptions.LevelOnSkipList = option.LevelOnSkipList
-	storageOptions.MemTableSize = option.MemTableSize
+	storageOptions.Path = storageOption.Path
+	storageOptions.LimitedFilesNumOnL0 = storageOption.LimitedFilesNumOnL0
+	storageOptions.TableSizeOffset = storageOption.TableSizeOffset
+	storageOptions.LevelOnSkipList = storageOption.LevelOnSkipList
+
+	if value := option.ParseCapacityUnit(storageOption.BlockSize); value != 0 {
+		storageOptions.BlockSize = value
+	}
+	if value := option.ParseCapacityUnit(storageOption.TableSize); value != 0 {
+		storageOptions.TableSize = value
+	}
+	if value := option.ParseCapacityUnit(storageOption.MemTableSize); value != 0 {
+		storageOptions.MemTableSize = value
+	}
 	return storageOptions
 }

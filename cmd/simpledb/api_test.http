@@ -1,0 +1,15 @@
+
+### get item
+GET http://127.0.0.1:33665/storage/user HTTP/1.1
+
+
+### put item
+PUT http://127.0.0.1:33665/storage/user HTTP/1.1
+Content-Type: application/json
+
+{
+  "foo": "bar"
+}
+
+### delete item
+DELETE http://127.0.0.1:33665/storage/user HTTP/1.1

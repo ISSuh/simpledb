@@ -27,7 +27,6 @@ package node
 import (
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -39,6 +38,10 @@ const (
 )
 
 type NodeStatus int
+
+const (
+	RetryCountLimit = 1
+)
 
 const (
 	RUNNING = iota
@@ -63,6 +66,8 @@ type NodeObserver struct {
 	notifier     NodeObserverNotifier
 	httpClient   *http.Client
 	running      chan bool
+
+	retryCount int
 }
 
 func NewNodeObserver(nodeMeta NodeMetadata, notifier NodeObserverNotifier) *NodeObserver {
@@ -70,6 +75,7 @@ func NewNodeObserver(nodeMeta NodeMetadata, notifier NodeObserverNotifier) *Node
 		nodeMetadata: nodeMeta,
 		notifier:     notifier,
 		running:      make(chan bool),
+		retryCount:   0,
 	}
 
 	transport := http.Transport{
@@ -97,19 +103,26 @@ func (observer *NodeObserver) dialTimeout(network, addr string) (net.Conn, error
 }
 
 func (observer *NodeObserver) heartbeat() {
-	logrus.Errorln("NodeObserver.heartbeat - start")
+	logrus.Infoln("NodeObserver.heartbeat [", observer.nodeMetadata.Id, "] - start")
 	url := HttpSheme + observer.nodeMetadata.Address + HeartBeatUrl
 	repuest, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		logrus.Errorln("NodeObserver.heartbeat - err : ", err)
+		logrus.Errorln("NodeObserver.heartbeat [", observer.nodeMetadata.Id, "] - err : ", err)
 		return
 	}
 
 	for {
 		time.Sleep(observer.notifier.HeartBeatDuration())
 
-		_, err := observer.httpClient.Do(repuest)
-		if os.IsTimeout(err) {
+		resp, err := observer.httpClient.Do(repuest)
+		if (err != nil) || (resp.StatusCode != http.StatusOK) {
+			logrus.Warningln("NodeObserver.heartbeat [", observer.nodeMetadata.Id, "] - err : ", err, " / response : ", resp)
+			observer.retryCount++
+		} else {
+			observer.retryCount = 0
+		}
+
+		if observer.retryCount >= RetryCountLimit {
 			message := NodeHeartbeatMessage{
 				Timestamp: 0,
 				Id:        observer.nodeMetadata.Id,
@@ -118,7 +131,8 @@ func (observer *NodeObserver) heartbeat() {
 			}
 
 			observer.notifier.Notify(message, DOWN)
-			return
+			break
 		}
 	}
+	logrus.Infoln("NodeObserver.heartbeat [", observer.nodeMetadata.Id, "] - stop")
 }

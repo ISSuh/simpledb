@@ -54,6 +54,7 @@ func NewNodeManager(option option.NodeManagerOption) *NodeManager {
 }
 
 func (manager *NodeManager) AddNode(nodeMeta NodeMetadata) error {
+	logrus.Infoln("NodeManager.AddNode - id : ", nodeMeta.Id)
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 
@@ -67,6 +68,7 @@ func (manager *NodeManager) AddNode(nodeMeta NodeMetadata) error {
 }
 
 func (manager *NodeManager) RemoveNode(id int) {
+	logrus.Infoln("NodeManager.RemoveNode - id : ", id)
 	manager.mutex.Lock()
 	defer manager.mutex.Unlock()
 	delete(manager.nodeMetas, id)

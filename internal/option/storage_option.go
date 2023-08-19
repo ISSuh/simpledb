@@ -33,12 +33,12 @@ const (
 
 const (
 	defaultLevel               = 7
-	defaultBlockSize           = 4
-	defaultTableSize           = 2 * MB
-	defaultLimitedFilesNumOnL0 = 2
+	defaultBlockSize           = "4K"
+	defaultTableSize           = "2M"
+	defaultLimitedFilesNumOnL0 = 7
 	defaultTableSizeOffset     = 10
 	defaultLevelOnSkipList     = 5
-	defaultMemTableSize        = 4 * MB
+	defaultMemTableSize        = "4M"
 )
 
 type StorageOption struct {
@@ -51,10 +51,10 @@ type StorageOption struct {
 	Level int `yaml:"level"`
 
 	// max block size on table
-	BlockSize int `yaml:"block_size"`
+	BlockSize string `yaml:"block_size"`
 
 	// max L0 table size
-	TableSize int `yaml:"table_size"`
+	TableSize string `yaml:"table_size"`
 
 	// limited number of files on level
 	// key is level, value is limited number
@@ -70,7 +70,7 @@ type StorageOption struct {
 	LevelOnSkipList int `yaml:"level_on_skiplist"`
 
 	// limited number of memtable
-	MemTableSize int `yaml:"memtable_size"`
+	MemTableSize string `yaml:"memtable_size"`
 }
 
 func NewStorageOption(path string) StorageOption {
@@ -79,7 +79,7 @@ func NewStorageOption(path string) StorageOption {
 		Level:               defaultLevel,
 		BlockSize:           defaultBlockSize,
 		TableSize:           defaultTableSize,
-		LimitedFilesNumOnL0: defaultTableSize,
+		LimitedFilesNumOnL0: defaultLimitedFilesNumOnL0,
 		TableSizeOffset:     defaultTableSizeOffset,
 		LevelOnSkipList:     defaultLevelOnSkipList,
 		MemTableSize:        defaultMemTableSize,

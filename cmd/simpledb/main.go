@@ -57,4 +57,6 @@ func main() {
 	if err := node.Serve(); err != nil {
 		logrus.Fatal("SimpleDB.Serve - ", err)
 	}
+
+	node.Stop()
 }

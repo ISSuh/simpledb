@@ -26,10 +26,10 @@ package option
 
 type NodeOption struct {
 	// node id.
-	Id int `yaml:"id"`
+	NodeId int `yaml:"node_id"`
 
 	// node address
-	Address string `yaml:"address"`
+	RpcAddress string `yaml:"rpc_address"`
 
 	// cluster address
 	ClusterAddress string `yaml:"cluster_address"`

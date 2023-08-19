@@ -53,13 +53,23 @@ node_manager:
 # config/db.yaml
 # simpledb config
 
+# HTTP server address
+address: 127.0.0.1:33665
+
+# simpledb standalone mode
+# Set this option true if you don't need any functionality of distribution.
+# if this option is true,
+# do not connect cluster and not create Raft Node object
+standalone: false
+
 # raft node option
+# this option is used when standalone option is true
 node:
   # node id
-  id: 0
+  node_id: 0
 
   # RPC server address
-  address: 127.0.0.1:33665
+  rpc_address: 127.0.0.1:33666
 
   # cluster address for connect
   cluster_address: 127.0.0.1:33660
@@ -67,7 +77,7 @@ node:
 # storage option
 storage:
   # default directory path where placed files
-  path: ../test/id0
+  path: ../temp/id0
 
   # max level of files
   # start level is 0
@@ -75,7 +85,7 @@ storage:
   level: 7
 
   # max block size on table
-  block_size: 4M
+  block_size: 4K
 
   # max L0 table size
   table_size: 2M
@@ -94,5 +104,5 @@ storage:
   level_on_skiplist: 5
 
   # limited number of memtable
-  memtable_size: 4MB  
+  memtable_size: 4M
 ```

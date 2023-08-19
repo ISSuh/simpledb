@@ -30,6 +30,7 @@ import (
 
 type StorageEngine interface {
 	Open(option option.StorageOption) error
+	Close()
 	Put(key string, value []byte) error
 	Get(key string) ([]byte, error)
 	Remove(key string) error

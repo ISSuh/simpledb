@@ -27,9 +27,17 @@ package option
 import (
 	"errors"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+)
+
+const (
+	BUnit  = "B"
+	KBUnit = "K"
+	MBUnit = "M"
+	GBUnit = "G"
 )
 
 func LoadOptionFile(path string, option interface{}) error {
@@ -48,6 +56,34 @@ func LoadOptionFile(path string, option interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func ParseCapacityUnit(valueWithUnit string) int {
+	valueStr := ""
+	unitStr := valueWithUnit[len(valueWithUnit)-1:]
+	unit := 1
+
+	switch unitStr {
+	case KBUnit:
+		unit *= KB
+		valueStr = valueWithUnit[:len(valueWithUnit)-1]
+	case MBUnit:
+		unit *= MB
+		valueStr = valueWithUnit[:len(valueWithUnit)-1]
+	case GBUnit:
+		unit *= GB
+		valueStr = valueWithUnit[:len(valueWithUnit)-1]
+	default:
+		unit = 1
+		valueStr = valueWithUnit
+	}
+
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		logrus.Errorln("ParseCapacityUnit - invalid value. ", valueWithUnit)
+		return 0
+	}
+	return value * unit
 }
 
 func loadFile(path string) ([]byte, error) {

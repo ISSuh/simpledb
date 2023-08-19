@@ -6,7 +6,7 @@ Main storage use [LSM-tree based engine](https://github.com/ISSuh/lsm-tree) and 
 Under development project.
 
 ## Design
-![arch](./doc/arch.png)
+![arch](./docs/arch.png)
 
 ## Install
 

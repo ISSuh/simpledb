@@ -34,7 +34,7 @@ import (
 
 const (
 	HttpSheme    = "http://"
-	HeartBeatUrl = "/heartbeat"
+	HeartBeatUrl = "/node/heartbeat"
 )
 
 type NodeStatus int

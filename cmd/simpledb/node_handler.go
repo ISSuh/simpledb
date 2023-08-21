@@ -33,52 +33,23 @@ import (
 )
 
 func (node *SimpleDBNode) Heartbeat(w http.ResponseWriter, r *http.Request, args map[string]string) {
-	logrus.Infoln("Cluster.Heartbeat")
+	logrus.Infoln("SimpleDBNode.Heartbeat")
 	api.HandleResponse(w, nil, http.StatusOK)
 }
 
-func (node *SimpleDBNode) GetItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
-	key := args["key"]
-	logrus.Infoln("Cluster.GetItem - key : ", key)
-
-	value, err := node.engine.Get(key)
-	if err != nil {
-		logrus.Errorln("Cluster.GetItem - err : ", err)
-		api.HandleResponse(w, nil, http.StatusBadRequest)
-		return
-	}
-	api.HandleResponse(w, value, http.StatusOK)
-}
-
-func (node *SimpleDBNode) PutItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
-	key := args["key"]
-	logrus.Infoln("Cluster.PutItem - key : ", key)
+func (node *SimpleDBNode) RegistNewPeer(w http.ResponseWriter, r *http.Request, args map[string]string) {
+	id := args["id"]
+	logrus.Infoln("SimpleDBNode.RegistedNewPeer - id : ", id)
 
 	defer r.Body.Close()
-	value, err := io.ReadAll(r.Body)
-	if err != nil {
-		logrus.Errorln("Cluster.PutItem - err : ", err)
+	body, err := io.ReadAll(r.Body)
+	if err != err {
+		logrus.Errorln("SimpleDBNode.RegistNewPeer - err : ", err)
 		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
 	} else {
-		logrus.Infoln("Cluster.PutItem - value : ", string(value))
+		logrus.Infoln("SimpleDBNode.PutItem - value : ", string(body))
 	}
 
-	if err := node.engine.Put(key, value); err != nil {
-		logrus.Errorln("Cluster.PutItem - err : ", err)
-		api.HandleResponse(w, nil, http.StatusBadRequest)
-		return
-	}
-	api.HandleResponse(w, nil, http.StatusOK)
-}
-
-func (node *SimpleDBNode) RemoveItem(w http.ResponseWriter, r *http.Request, args map[string]string) {
-	key := args["key"]
-	logrus.Infoln("Cluster.RemoveItem - key : ", key)
-
-	if err := node.engine.Remove(key); err != nil {
-		logrus.Errorln("Cluster.RemoveItem - err : ", err)
-		api.HandleResponse(w, nil, http.StatusBadRequest)
-	}
 	api.HandleResponse(w, nil, http.StatusOK)
 }

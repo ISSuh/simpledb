@@ -1,0 +1,19 @@
+# simpledb config
+
+address: 127.0.0.1:33440
+standalone: false
+
+node:
+  node_id: 0
+  rpc_address: 127.0.0.1:33441
+  cluster_address: 127.0.0.1:33660
+
+storage:
+  path: ../temp/id0
+  level: 7
+  block_size: 4K
+  table_size: 2M
+  limited_file_num_on_l0: 2
+  table_size_offset: 10
+  level_on_skiplist: 5
+  memtable_size: 4M

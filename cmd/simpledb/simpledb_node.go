@@ -97,7 +97,6 @@ func (n *SimpleDBNode) Serve() error {
 	if !n.option.StandAloneMode {
 		go n.ConnectToCluster()
 	}
-
 	return n.server.Serve(n.option.Address)
 }
 
@@ -123,24 +122,33 @@ func (n *SimpleDBNode) install() {
 
 	if !n.option.StandAloneMode {
 		// node managing handler
-		n.route = append(n.route, api.NewRoute(http.MethodGet, "/heartbeat", n.Heartbeat))
+		n.route = append(n.route, api.NewRoute(http.MethodGet, "/node/heartbeat", n.Heartbeat))
+		n.route = append(n.route, api.NewRoute(http.MethodPost, "/node/peer/{id}", n.RegistNewPeer))
 	}
 }
 
 func (n *SimpleDBNode) ConnectToCluster() {
-	id := n.option.NodeOption.NodeId
-	address := n.option.Address
+	nodeId := n.option.NodeOption.NodeId
+	nodeAddress := n.option.NodeOption.RpcAddress
 	clusterAddress := n.option.NodeOption.ClusterAddress
 
-	registNodeUrl := HttpSheme + clusterAddress + "/node/" + strconv.Itoa(id)
-	nodeMeta := node.NodeMetadata{Id: id, Address: address}
+	registNodeUrl := HttpSheme + clusterAddress + "/node/" + strconv.Itoa(nodeId)
+	nodeMeta := node.NodeMetadata{Id: nodeId,	Address: nodeAddress}
 	nodeMetaJson, _ := json.Marshal(nodeMeta)
 	buffer := bytes.NewBuffer(nodeMetaJson)
-	_, err := n.requestToCluster(http.MethodPut, registNodeUrl, buffer)
+	body, err := n.requestToCluster(http.MethodPost, registNodeUrl, buffer)
 	if err != nil {
 		logrus.Error(err)
 		return
 	}
+
+	var peerMetas []node.NodeMetadata
+	if err := json.Unmarshal(body, &peerMetas); err != nil {
+		logrus.Error(err)
+		return
+	}
+
+	n.dbNode.ConnectPeerNode(peerMetas)
 }
 
 func (n *SimpleDBNode) requestToCluster(method, url string, body io.Reader) ([]byte, error) {

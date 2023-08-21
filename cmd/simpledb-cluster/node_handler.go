@@ -34,6 +34,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	HttpSheme = "http://"
+)
+
 func (cluster *Cluster) NewNode(w http.ResponseWriter, r *http.Request, args map[string]string) {
 	path := args["id"]
 	logrus.Infoln("Cluster.NewNode - id: ", path)
@@ -44,19 +48,53 @@ func (cluster *Cluster) NewNode(w http.ResponseWriter, r *http.Request, args map
 		return
 	}
 
+	// parse body
 	var node node.NodeMetadata
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&node); err != nil {
 		logrus.Errorln("Cluster.NewNode - ", err)
 		api.HandleResponse(w, nil, http.StatusBadRequest)
 		return
+	} else {
+		logrus.Infoln("Cluster.NewNode - node : ", node)
 	}
 
+	// // notify new node to other nodes
+	// for _, peer := range cluster.nodeManager.NodeList() {
+	// 	id := peer.Id
+	// 	address := peer.Address
+	// 	requestNotifyPeerUrl := HttpSheme + address + "/node/peer/" + strconv.Itoa(id)
+	// 	repuest, err := http.NewRequest(http.MethodPost, requestNotifyPeerUrl, nil)
+	// 	if err != nil {
+	// 		logrus.Errorln("Cluster.NewNode - ", err)
+	// 		continue
+	// 	}
+
+	// 	httpClient := &http.Client{}
+	// 	resp, err := httpClient.Do(repuest)
+	// 	if (err != nil) || (resp.StatusCode != http.StatusOK) {
+	// 		logrus.Errorln("Cluster.NewNode - err : ", err, " / response : ", resp)
+	// 		continue
+	// 	}
+	// }
+
+	// get other node list
+	nodeMetas := cluster.nodeManager.NodeList()
+
+	// regist new node
 	if err := cluster.nodeManager.AddNode(node); err != nil {
-		logrus.Errorln("Cluster.Node - ", err)
+		logrus.Errorln("Cluster.NewNode - ", err)
 		api.HandleResponse(w, nil, http.StatusBadRequest)
 	}
-	api.HandleResponse(w, nil, http.StatusOK)
+
+	// struct json body
+	jsonBody, err := json.Marshal(nodeMetas)
+	if err != nil {
+		logrus.Errorln("Cluster.NewNode - ", err)
+		api.HandleResponse(w, nil, http.StatusInternalServerError)
+	}
+
+	api.HandleResponse(w, jsonBody, http.StatusOK)
 }
 
 func (cluster *Cluster) RemoveNode(w http.ResponseWriter, r *http.Request, args map[string]string) {

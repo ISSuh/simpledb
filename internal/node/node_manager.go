@@ -100,11 +100,11 @@ func (manager *NodeManager) NodeList() []NodeMetadata {
 }
 
 func (manager *NodeManager) HeartBeatDuration() time.Duration {
-	return time.Duration(1 * time.Second)
+	return time.Duration(manager.option.HeartbeatDuration) * time.Second
 }
 
 func (manager *NodeManager) HeartBeatRequestTimeout() time.Duration {
-	return time.Duration(5 * time.Second)
+	return time.Duration(manager.option.HeartbeatRequestTimout) * time.Millisecond
 }
 
 func (manager *NodeManager) Notify(message NodeHeartbeatMessage, status NodeStatus) {

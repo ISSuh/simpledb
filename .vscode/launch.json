@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/cmd/simpledb",
-      "args": ["${workspaceFolder}/config/db.yaml"]
+      "args": ["${workspaceFolder}/config/db_node1.yaml"]
     },
     {
       "name": "simpledb-cluster",

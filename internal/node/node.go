@@ -37,8 +37,18 @@ type Node struct {
 func NewNode(option option.NodeOption) *Node {
 	service := raft.NewRaftService(option.NodeId, option.RpcAddress)
 	service.RegistTrasnporter(raft.NewRpcTransporter())
+	service.Run()
+
 	return &Node{
 		option:  option,
 		service: service,
 	}
+}
+
+func (node *Node) ConnectPeerNode(peerMetas []NodeMetadata) {
+	peerAddrsss := make(map[int]string)
+	for _, meta := range peerMetas {
+		peerAddrsss[meta.Id] = meta.Address
+	}
+	node.service.ConnectToPeers(peerAddrsss)
 }

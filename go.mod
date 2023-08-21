@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/ISSuh/lsm-tree v0.0.0-20230805064215-6b790fa6a89e
-	github.com/ISSuh/raft v0.0.0-20230810135850-909001ed71a9
+	github.com/ISSuh/raft v0.0.0-20230821124940-478331c879e1
 	github.com/gorilla/mux v1.8.0
 	github.com/sirupsen/logrus v1.9.3
 	gopkg.in/yaml.v2 v2.4.0

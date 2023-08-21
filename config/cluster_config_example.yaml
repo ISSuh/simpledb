@@ -8,7 +8,7 @@ node_manager:
 
   # heartbeat request duration.
   # second.
-  heartbeat_duration: 30
+  heartbeat_duration: 60
 
   # heartbeat request timeout.
   # millisecond

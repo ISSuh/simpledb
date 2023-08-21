@@ -75,7 +75,7 @@ func (cluster *Cluster) install() {
 	cluster.route = []api.Route{
 		// node managing handler
 		api.NewRoute(http.MethodGet, "/node/{id}", cluster.Node),
-		api.NewRoute(http.MethodPut, "/node/{id}", cluster.NewNode),
+		api.NewRoute(http.MethodPost, "/node/{id}", cluster.NewNode),
 		api.NewRoute(http.MethodDelete, "/node/{id}", cluster.RemoveNode),
 		api.NewRoute(http.MethodGet, "/node", cluster.NodeList),
 

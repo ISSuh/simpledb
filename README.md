@@ -63,7 +63,7 @@ address: 127.0.0.1:33665
 standalone: false
 
 # raft node option
-# this option is used when standalone option is true
+# this option is used when standalone option is false
 node:
   # node id
   node_id: 0

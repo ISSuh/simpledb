@@ -90,14 +90,6 @@ func NewNodeObserver(nodeMeta NodeMetadata, notifier NodeObserverNotifier) *Node
 	return observer
 }
 
-func (observer *NodeObserver) StartHeartbeat() {
-
-}
-
-func (observer *NodeObserver) StopHeartbeat() {
-
-}
-
 func (observer *NodeObserver) dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, observer.notifier.HeartBeatRequestTimeout())
 }

@@ -133,7 +133,7 @@ func (n *SimpleDBNode) ConnectToCluster() {
 	clusterAddress := n.option.NodeOption.ClusterAddress
 
 	registNodeUrl := HttpSheme + clusterAddress + "/node/" + strconv.Itoa(nodeId)
-	nodeMeta := node.NodeMetadata{Id: nodeId,	Address: nodeAddress}
+	nodeMeta := node.NodeMetadata{Id: nodeId, Address: nodeAddress}
 	nodeMetaJson, _ := json.Marshal(nodeMeta)
 	buffer := bytes.NewBuffer(nodeMetaJson)
 	body, err := n.requestToCluster(http.MethodPost, registNodeUrl, buffer)
